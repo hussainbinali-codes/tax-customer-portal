@@ -183,7 +183,7 @@ const Register = () => {
                 id="name"
                 name="name"
                 type="text"
-                placeholder="Bilal Ahmed Siddique"
+                placeholder="Enter Your Full Name"
                 value={formData.name}
                 onChange={handleInputChange}
                 required
@@ -230,7 +230,7 @@ const Register = () => {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="bilalahmsiddique@gmail.com"
+                      placeholder="abc234@gmail.com"
                       value={formData.email}
                       onChange={handleInputChange}
                       required

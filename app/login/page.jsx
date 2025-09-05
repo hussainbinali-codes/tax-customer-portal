@@ -149,11 +149,7 @@ const Login = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm font-medium text-blue-800 mb-1">Demo Info:</p>
-              <p className="text-xs text-blue-700">Use your registered email and password</p>
-              <p className="text-xs text-blue-700">OTP will be sent to your registered email</p>
-            </div>
+            
 
             {error && (
               <Alert variant="destructive">
