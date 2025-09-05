@@ -101,7 +101,7 @@ const Register = () => {
       }
 
       // Use proxy route instead of direct API call
-      const response = await fetch(`${BaseUrl}/api/register`, {
+      const response = await fetch(`${BASE_URL}/api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
