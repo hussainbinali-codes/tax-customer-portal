@@ -17,13 +17,15 @@ import {
   FileSpreadsheet,
   FileArchive,
   FileImage,
-  Download,
   DollarSign,
   MessageSquare,
   Paperclip,
   X,
   Loader2,
+  Download,
 } from "lucide-react"
+import ReturnForm from "@/src/components/ReturnForm"
+import { getStoredData, setStoredData, seedReturns, addActivityLog } from "@/src/data/seed"
 
 // Helper components
 function formatDate(iso) {
@@ -86,15 +88,14 @@ const Returns = () => {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
   const [documents, setDocuments] = useState([])
   const [isUploading, setIsUploading] = useState(false)
-  const [customerName, setCustomerName] = useState("")
-  const [returnId, setReturnId] = useState("")
-  const [customerId, setCustomerId] = useState("")
-  const [pricingType, setPricingType] = useState("hourly")
-  const [price, setPrice] = useState("")
   const [newComment, setNewComment] = useState("")
   const [composerAttachments, setComposerAttachments] = useState([])
   const [timeline, setTimeline] = useState([])
-
+  const [customerId, setCustomerId] = useState(null)
+  const [returnId, setReturnId] = useState(null)
+  const [customerName, setCustomerName] = useState("Unknown")
+  const [userProfile , setUserProfile] = useState(null)
+  const [updated , setUpdated] = useState(false)
   const fileInputRef = useRef(null)
 
   const fetchReturns = useCallback(async () => {
@@ -121,6 +122,8 @@ const Returns = () => {
         id: returnItem.id.toString(),
         name: `Return #${returnItem.id}`,
         type: returnItem.return_type,
+        price: returnItem.price,
+        pricing_type: returnItem.pricing_type,
         status: returnItem.status,
         documentCount: returnItem.document_ids ? returnItem.document_ids.length : 0,
         createdDate: new Date(returnItem.modified_at).toISOString().split("T")[0],
@@ -138,6 +141,67 @@ const Returns = () => {
       setLoading(false)
     }
   }, [userId])
+      useEffect(() => {
+    // Load user profile from localStorage
+    const loadUserProfile = () => {
+      try {
+        const storedProfile = localStorage.getItem("userProfile")
+        console.log("Stored Profile:", storedProfile)
+        if (storedProfile) {
+          const parsedProfile = JSON.parse(storedProfile)
+          setUserProfile(parsedProfile)
+          return parsedProfile
+        }
+      } catch (error) {
+        console.error("Error loading user profile:", error)
+        setError("Failed to load user profile")
+      }
+      return null
+    }
+
+    const profile = loadUserProfile()
+    
+    
+  }, [])
+  const handleAddReturn = (newReturn) => {
+    const returnWithId = {
+      ...newReturn,
+      id: Date.now().toString(),
+      createdDate: new Date().toISOString().split("T")[0],
+      lastUpdated: new Date().toISOString().split("T")[0],
+      status: "Pending",
+      documentCount: newReturn.documents?.length || 0,
+    }
+
+    const updatedReturns = [returnWithId, ...returns]
+    setReturns(updatedReturns)
+    setStoredData("returns", updatedReturns)
+
+    // Add activity log
+    // addActivityLog("Tax Return Created", "Tax Return", New ${newReturn.type} return created)
+
+    setShowForm(false)
+  }
+
+  const handleUpdateReturn = (updatedReturn) => {
+    const updatedReturns = returns.map((r) =>
+      r.id === updatedReturn.id
+        ? {
+            ...updatedReturn,
+            lastUpdated: new Date().toISOString().split("T")[0],
+            documentCount: updatedReturn.documents?.length || 0,
+          }
+        : r,
+    )
+    setReturns(updatedReturns)
+    setStoredData("returns", updatedReturns)
+
+    // Add activity log
+    // addActivityLog("Tax Return Updated", "Tax Return", Return ${updatedReturn.id} was modified)
+
+    setEditingReturn(null)
+    setShowForm(false)
+  }
 
   const fetchReturnDetails = useCallback(async (id) => {
     if (!id) return
@@ -185,7 +249,7 @@ const Returns = () => {
     }
   }, [])
 
- const downloadDocument = useCallback(async (doc) => {
+  const downloadDocument = useCallback(async (doc) => {
   try {
     if (!doc.document_link) {
       alert("Document link not available");
@@ -197,7 +261,7 @@ const Returns = () => {
     const fileName = doc.doc_name || cleanPath.split("/").pop() || "document";
 
     // Use the backend download endpoint
-    const downloadUrl = `http://localhost:3001/api/download?documentLink=${encodeURIComponent(doc.document_link)}`;
+    const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`;
     console.log("Download URL:", downloadUrl);
 
     // Create a fetch request to get the file
@@ -240,43 +304,11 @@ const Returns = () => {
     }
   }, [selectedReturnId, fetchReturnDetails])
 
-  const handleAddPricing = async () => {
-    if (!price || !customerId || !returnId) {
-      alert("Missing required pricing information")
-      return
-    }
-
-    try {
-      const res = await fetch(`${BASE_URL}/api/add-pricing`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer_id: customerId,
-          return_id: returnId,
-          pricing_type: pricingType,
-          price: price,
-          created_by_type: role,
-          created_by_id: loginId,
-        }),
-      })
-
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
-
-      alert("Pricing information saved successfully!")
-      setPrice("")
-    } catch (err) {
-      console.error("Error adding pricing:", err)
-      alert("Failed to save pricing information. Please try again.")
-    }
-  }
-
   const uploadDocuments = async (files) => {
     if (!files || files.length === 0) return []
 
     const formData = new FormData()
-    files.forEach((file) => {
-      formData.append("documents", file)
-    })
+    
 
     formData.append("customerId", customerId)
     formData.append("taxReturnId", returnId)
@@ -284,6 +316,10 @@ const Returns = () => {
     formData.append("createdby_type", role || "customer")
     formData.append("customerName", customerName)
     formData.append("comment", newComment)
+    formData.append("category", returnDetails?.return_type || "Tax Return")
+    files.forEach((file) => {
+      formData.append("documents", file)
+    })
 
     try {
       const response = await fetch(`${BASE_URL}/api/upload-documents`, {
@@ -387,6 +423,8 @@ const Returns = () => {
           status: returnDetails.status || "In Progress",
           updatedAt: returnDetails.modified_at || new Date().toISOString(),
           details: `Return type: ${returnDetails.return_type || "N/A"}. Status: ${returnDetails.status || "In Progress"}`,
+          price: returnDetails.price,
+          pricing_type: returnDetails.pricing_type,
         },
       ]
     : []
@@ -489,20 +527,28 @@ const Returns = () => {
                                     >
                                       <DocIcon type={d.doc_type} className="text-gray-600 h-5 w-5" />
                                       <div className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/70 px-2 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                                        {d.doc_name.length > 14 ? d.doc_name.slice(0, 14) + "…" : d.doc_name}
+                                        {d.doc_name && d.doc_name.length > 14
+                                          ? d.doc_name.slice(0, 14) + "…"
+                                          : d.doc_name || "Document"}
                                       </div>
                                       <div className="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                                         <button
                                           className="rounded bg-white/90 p-1 hover:bg-white"
                                           aria-label="View"
-                                          onClick={() => alert(`Viewing ${d.doc_name}`)}
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            alert(`Viewing ${d.doc_name || "document"}`)
+                                          }}
                                         >
                                           <Eye className="h-3.5 w-3.5 text-gray-700" />
                                         </button>
                                         <button
                                           className="rounded bg-white/90 p-1 hover:bg-white"
                                           aria-label="Download"
-                                          onClick={() => downloadDocument(d)}
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            downloadDocument(d)
+                                          }}
                                         >
                                           <Download className="h-3.5 w-3.5 text-gray-700" />
                                         </button>
@@ -514,40 +560,56 @@ const Returns = () => {
                                   )}
                                 </div>
                               </div>
+
+                              {/* <div className="border-t border-gray-200 p-4 md:p-6">
+                                <div className="mb-4 flex items-center justify-between">
+                                  <h3 className="text-lg font-semibold text-gray-900">Pricing Information</h3>
+                                  <DollarSign className="h-5 w-5 text-blue-600" />
+                                </div>
+
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
+                                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                                      {r.pricing_type
+                                        ? r.pricing_type === "hourly"
+                                          ? "Hourly"
+                                          : "Lump Sum"
+                                        : "Not set"}
+                                    </div>
+                                  </div>
+
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                                      {r.price ? `$${r.price}` : "Not set"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div> */}
                             </div>
 
                             <aside className="self-start rounded-md border border-gray-200 bg-white p-4 md:p-6">
                               <div className="mb-4 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-gray-900">Pricing</h3>
+                                <h3 className="text-lg font-semibold text-gray-900">Pricing Information</h3>
                                 <DollarSign className="h-5 w-5 text-blue-600" />
                               </div>
 
-                              <label className="mb-1 block text-sm font-medium text-gray-700">Pricing Type</label>
-                              <select
-                                value={pricingType}
-                                onChange={(e) => setPricingType(e.target.value)}
-                                className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                              >
-                                <option value="hourly">Hourly</option>
-                                <option value="lumpsum">Lump Sum</option>
-                              </select>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
+                                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                                    {r.pricing_type ? (r.pricing_type === "hourly" ? "Hourly" : "Lump Sum") : "Not set"}
+                                  </div>
+                                </div>
 
-                              <label className="mb-1 block text-sm font-medium text-gray-700">Price ($)</label>
-                              <input
-                                type="number"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                className="mb-4 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter price"
-                              />
-
-                              <button
-                                className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                                onClick={handleAddPricing}
-                                disabled={!price}
-                              >
-                                Save Pricing
-                              </button>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
+                                    {r.price ? `$${r.price}` : "Not set"}
+                                  </div>
+                                </div>
+                              </div>
                             </aside>
 
                             <div className="md:col-span-4 rounded-md border border-gray-200 bg-white p-4 md:p-6">
@@ -870,11 +932,26 @@ const Returns = () => {
                     </p>
                   </div>
                 )}
+                
               </div>
             </motion.div>
+            
           )}
         </main>
       </div>
+      {showForm && (
+        <ReturnForm
+          isOpen={showForm}
+          onClose={() => {
+            setShowForm(false)
+            
+            setEditingReturn(null)
+          }}
+          onSubmit={editingReturn ? handleUpdateReturn : handleAddReturn}
+          editingReturn={editingReturn}
+          customer={userProfile ? { id: userProfile.uid, name: userProfile.displayName,token: userProfile.token , setUpdated : setUpdated } : null}
+       />
+      )}
     </div>
   )
 }
