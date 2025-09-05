@@ -25,7 +25,9 @@ import {
   Download,
 } from "lucide-react"
 import ReturnForm from "@/src/components/ReturnForm"
-import { getStoredData, setStoredData, seedReturns, addActivityLog } from "@/src/data/seed"
+import { setStoredData } from "@/src/data/seed"
+import {BASE_URL} from "@/src/components/BaseUrl"
+
 
 // Helper components
 function formatDate(iso) {
@@ -57,7 +59,7 @@ function DocIcon({ type, className }) {
   return <FileText className={c} />
 }
 
-const BASE_URL = "https://taxation-backend.onrender.com"
+// const BASE_URL = "https://taxation-backend.onrender.com"
 
 const Returns = () => {
   const getUserId = () => {
@@ -76,6 +78,7 @@ const Returns = () => {
   const userId = loginId
 
   const [returns, setReturns] = useState([])
+  const [allReturnsData, setAllReturnsData] = useState([]) // Store complete returns data
   const [showForm, setShowForm] = useState(false)
   const [editingReturn, setEditingReturn] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
@@ -94,9 +97,10 @@ const Returns = () => {
   const [customerId, setCustomerId] = useState(null)
   const [returnId, setReturnId] = useState(null)
   const [customerName, setCustomerName] = useState("Unknown")
-  const [userProfile , setUserProfile] = useState(null)
-  const [updated , setUpdated] = useState(false)
+  const [userProfile, setUserProfile] = useState(null)
+  const [updated, setUpdated] = useState(false)
   const fileInputRef = useRef(null)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const fetchReturns = useCallback(async () => {
     if (!userId) {
@@ -116,6 +120,8 @@ const Returns = () => {
       }
 
       const data = await response.json()
+
+      setAllReturnsData(data)
 
       // Transform API data to match our expected format
       const transformedReturns = data.map((returnItem) => ({
@@ -140,8 +146,136 @@ const Returns = () => {
     } finally {
       setLoading(false)
     }
-  }, [userId])
-      useEffect(() => {
+  }, [userId, refreshTrigger])
+
+  const handleAddReturn = (newReturn) => {
+    const returnWithId = {
+      ...newReturn,
+      id: Date.now().toString(),
+      createdDate: new Date().toISOString().split("T")[0],
+      lastUpdated: new Date().toISOString().split("T")[0],
+      status: "Pending",
+      documentCount: newReturn.documents?.length || 0,
+    }
+
+    const updatedReturns = [returnWithId, ...returns]
+    setReturns(updatedReturns)
+    setStoredData("returns", updatedReturns)
+
+    setShowForm(false)
+    setRefreshTrigger((prev) => prev + 1) // Trigger refresh after adding a new return
+  }
+
+  const handleUpdateReturn = (updatedReturn) => {
+    const updatedReturns = returns.map((r) =>
+      r.id === updatedReturn.id
+        ? {
+            ...updatedReturn,
+            lastUpdated: new Date().toISOString().split("T")[0],
+            documentCount: updatedReturn.documents?.length || 0,
+          }
+        : r,
+    )
+    setReturns(updatedReturns)
+    setStoredData("returns", updatedReturns)
+
+    setEditingReturn(null)
+    setShowForm(false)
+    setRefreshTrigger((prev) => prev + 1) // Trigger refresh after updating a return
+  }
+
+  const fetchReturnDetails = useCallback(
+    async (id) => {
+      if (!id) return
+
+      setIsLoadingDetail(true)
+      setError(null)
+
+      try {
+        const existingReturnData = allReturnsData.find((returnItem) => returnItem.id.toString() === id.toString())
+
+        if (existingReturnData) {
+          setReturnDetails(existingReturnData)
+        } else {
+          // Fallback to API call if data not found (shouldn't happen normally)
+          const detailsResponse = await fetch(`${BASE_URL}/api/tax-returns/${id}`)
+          if (detailsResponse.ok) {
+            const details = await detailsResponse.json()
+            setReturnDetails(details)
+          }
+        }
+
+        // Still fetch documents and timeline as these are separate endpoints
+        const [documentsResponse, timelineResponse] = await Promise.all([
+          fetch(`${BASE_URL}/api/documents/${id}`).catch(() => ({ ok: false })),
+          fetch(`${BASE_URL}/api/comments/${id}`).catch(() => ({ ok: false })),
+        ])
+
+        // Handle documents
+        if (documentsResponse.ok) {
+          const docs = await documentsResponse.json()
+          setDocuments(docs)
+
+          if (docs.length > 0) {
+            const documentLink = docs[0].document_link || ""
+            const customerNameFromLink = documentLink.split(/[\\/]/).pop()?.split("_")[0] || "Unknown"
+            setCustomerName(customerNameFromLink)
+            setReturnId(docs[0].return_id)
+            setCustomerId(docs[0].customer_id)
+          }
+        }
+
+        // Handle timeline
+        if (timelineResponse.ok) {
+          const timelineData = await timelineResponse.json()
+          setTimeline(timelineData)
+        }
+      } catch (error) {
+        console.error("Failed to fetch return details:", error)
+        setError("Failed to load return details")
+      } finally {
+        setIsLoadingDetail(false)
+      }
+    },
+    [allReturnsData],
+  )
+
+  const downloadDocument = useCallback(async (doc) => {
+    try {
+      if (!doc.document_link) {
+        alert("Document link not available")
+        return
+      }
+
+      const cleanPath = doc.document_link.replace(/\\/g, "/")
+      const fileName = doc.doc_name || cleanPath.split("/").pop() || "document"
+      const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`
+
+      const response = await fetch(downloadUrl)
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`)
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = window.document.createElement("a")
+      link.href = url
+      link.download = fileName
+      window.document.body.appendChild(link)
+      link.click()
+
+      window.document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error("Error downloading document:", error)
+      alert("Failed to download document. Please try again.")
+    }
+  }, [])
+
+  // Initial data loading
+  useEffect(() => {
+    fetchReturns()
+  }, [fetchReturns])
+
+  useEffect(() => {
     // Load user profile from localStorage
     const loadUserProfile = () => {
       try {
@@ -162,138 +296,6 @@ const Returns = () => {
     
     
   }, [])
-  const handleAddReturn = (newReturn) => {
-    const returnWithId = {
-      ...newReturn,
-      id: Date.now().toString(),
-      createdDate: new Date().toISOString().split("T")[0],
-      lastUpdated: new Date().toISOString().split("T")[0],
-      status: "Pending",
-      documentCount: newReturn.documents?.length || 0,
-    }
-
-    const updatedReturns = [returnWithId, ...returns]
-    setReturns(updatedReturns)
-    setStoredData("returns", updatedReturns)
-
-    // Add activity log
-    // addActivityLog("Tax Return Created", "Tax Return", New ${newReturn.type} return created)
-
-    setShowForm(false)
-  }
-
-  const handleUpdateReturn = (updatedReturn) => {
-    const updatedReturns = returns.map((r) =>
-      r.id === updatedReturn.id
-        ? {
-            ...updatedReturn,
-            lastUpdated: new Date().toISOString().split("T")[0],
-            documentCount: updatedReturn.documents?.length || 0,
-          }
-        : r,
-    )
-    setReturns(updatedReturns)
-    setStoredData("returns", updatedReturns)
-
-    // Add activity log
-    // addActivityLog("Tax Return Updated", "Tax Return", Return ${updatedReturn.id} was modified)
-
-    setEditingReturn(null)
-    setShowForm(false)
-  }
-
-  const fetchReturnDetails = useCallback(async (id) => {
-    if (!id) return
-
-    setIsLoadingDetail(true)
-    setError(null)
-
-    try {
-      const [detailsResponse, documentsResponse, timelineResponse] = await Promise.all([
-        fetch(`${BASE_URL}/api/tax-returns/${id}`).catch(() => ({ ok: false })),
-        fetch(`${BASE_URL}/api/documents/${id}`).catch(() => ({ ok: false })),
-        fetch(`${BASE_URL}/api/comments/${id}`).catch(() => ({ ok: false })),
-      ])
-
-      // Handle return details
-      if (detailsResponse.ok) {
-        const details = await detailsResponse.json()
-        setReturnDetails(details)
-      }
-
-      // Handle documents
-      if (documentsResponse.ok) {
-        const docs = await documentsResponse.json()
-        setDocuments(docs)
-
-        if (docs.length > 0) {
-          const documentLink = docs[0].document_link || ""
-          const customerNameFromLink = documentLink.split(/[\\/]/).pop()?.split("_")[0] || "Unknown"
-          setCustomerName(customerNameFromLink)
-          setReturnId(docs[0].return_id)
-          setCustomerId(docs[0].customer_id)
-        }
-      }
-
-      // Handle timeline
-      if (timelineResponse.ok) {
-        const timelineData = await timelineResponse.json()
-        setTimeline(timelineData)
-      }
-    } catch (error) {
-      console.error("Failed to fetch return details:", error)
-      setError("Failed to load return details")
-    } finally {
-      setIsLoadingDetail(false)
-    }
-  }, [])
-
-  const downloadDocument = useCallback(async (doc) => {
-  try {
-    if (!doc.document_link) {
-      alert("Document link not available");
-      return;
-    }
-
-    // Clean up the document link path - handle both forward and backward slashes
-    const cleanPath = doc.document_link.replace(/\\/g, "/");
-    const fileName = doc.doc_name || cleanPath.split("/").pop() || "document";
-
-    // Use the backend download endpoint
-    const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`;
-
-    // Create a fetch request to get the file
-    const response = await fetch(downloadUrl);
-
-    if (!response.ok) {
-      throw new Error(`Download failed: ${response.status}`);
-    }
-
-    // Create blob from response
-    const blob = await response.blob();
-
-    // Create download link
-    const url = window.URL.createObjectURL(blob);
-    const link = window.document.createElement("a"); // ✅ use global document
-    link.href = url;
-    link.download = fileName;
-    window.document.body.appendChild(link);
-    link.click();
-
-    // Cleanup
-    window.document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error("Error downloading document:", error);
-    alert("Failed to download document. Please try again.");
-  }
-}, []);
-
-
-  // Initial data loading
-  useEffect(() => {
-    fetchReturns()
-  }, [fetchReturns])
 
   // Load detailed data when a return is selected
   useEffect(() => {
@@ -306,8 +308,6 @@ const Returns = () => {
     if (!files || files.length === 0) return []
 
     const formData = new FormData()
-    
-
     formData.append("customerId", customerId)
     formData.append("taxReturnId", returnId)
     formData.append("createdby_id", loginId)
@@ -333,6 +333,30 @@ const Returns = () => {
     }
   }
 
+  const postCommentOnly = async (comment) => {
+    const formData = new FormData()
+    formData.append("customerId", customerId)
+    formData.append("taxReturnId", returnId)
+    formData.append("createdby_id", loginId)
+    formData.append("createdby_type", role || "customer")
+    formData.append("customerName", customerName)
+    formData.append("comment", comment)
+    formData.append("category", returnDetails?.return_type || "Tax Return")
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/upload-documents`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error(`Comment post failed: ${response.status}`)
+      return await response.json()
+    } catch (error) {
+      console.error("Error posting comment:", error)
+      throw error
+    }
+  }
+
   const addComment = async () => {
     if (!newComment.trim() && composerAttachments.length === 0) {
       alert("Please add a comment or attach files")
@@ -344,10 +368,14 @@ const Returns = () => {
       let uploadedDocuments = []
 
       if (composerAttachments.length > 0) {
+        // Has attachments - use document upload API
         const filesToUpload = composerAttachments.map((attachment) => attachment.file).filter(Boolean)
         if (filesToUpload.length > 0) {
           uploadedDocuments = await uploadDocuments(filesToUpload)
         }
+      } else if (newComment.trim()) {
+        // Comment only - use comment posting API
+        await postCommentOnly(newComment.trim())
       }
 
       setNewComment("")
@@ -357,7 +385,7 @@ const Returns = () => {
         await fetchReturnDetails(selectedReturnId)
       }
 
-      alert(`Successfully ${uploadedDocuments.length > 0 ? "uploaded documents and " : ""}added comment!`)
+      // alert(`Successfully ${uploadedDocuments.length > 0 ? "uploaded documents and " : ""}added comment!`)
     } catch (error) {
       console.error("Error adding comment/uploading documents:", error)
       alert(`Error: ${error.message}`)
@@ -558,33 +586,6 @@ const Returns = () => {
                                   )}
                                 </div>
                               </div>
-
-                              {/* <div className="border-t border-gray-200 p-4 md:p-6">
-                                <div className="mb-4 flex items-center justify-between">
-                                  <h3 className="text-lg font-semibold text-gray-900">Pricing Information</h3>
-                                  <DollarSign className="h-5 w-5 text-blue-600" />
-                                </div>
-
-                                <div className="space-y-4">
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Pricing Type</label>
-                                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
-                                      {r.pricing_type
-                                        ? r.pricing_type === "hourly"
-                                          ? "Hourly"
-                                          : "Lump Sum"
-                                        : "Not set"}
-                                    </div>
-                                  </div>
-
-                                  <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm text-gray-900">
-                                      {r.price ? `$${r.price}` : "Not set"}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div> */}
                             </div>
 
                             <aside className="self-start rounded-md border border-gray-200 bg-white p-4 md:p-6">
@@ -930,10 +931,8 @@ const Returns = () => {
                     </p>
                   </div>
                 )}
-                
               </div>
             </motion.div>
-            
           )}
         </main>
       </div>
@@ -942,14 +941,23 @@ const Returns = () => {
           isOpen={showForm}
           onClose={() => {
             setShowForm(false)
-            
             setEditingReturn(null)
           }}
           onSubmit={editingReturn ? handleUpdateReturn : handleAddReturn}
           editingReturn={editingReturn}
-          customer={userProfile ? { id: userProfile.uid, name: userProfile.displayName,token: userProfile.token , setUpdated : setUpdated } : null}
-       />
-      )}
+          customer={
+            userProfile
+              ? {
+                  id: userProfile.uid,
+                  name: userProfile.displayName,
+                  token: userProfile.token,
+
+                  onReturnAdded: () => setRefreshTrigger((prev) => prev + 1),
+                }
+              : null
+          }
+        />
+      )}
     </div>
   )
 }

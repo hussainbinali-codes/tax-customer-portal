@@ -11,6 +11,8 @@ import { Badge } from "../../components/ui/badge"
 import FileUpload from "./FileUpload"
 import { X, FileText, Loader2, Trash2 } from "lucide-react"
 import { validateFileSize } from "../utils/validators"
+import {BASE_URL} from "@/src/components/BaseUrl"
+
 
 const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
   const [formData, setFormData] = useState({
@@ -20,8 +22,9 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const token = customer.token
-  const customerName = customer.name
+    const [showInput, setShowInput] = useState(false)
+  const token = customer?.token
+  const customerName = customer?.name
 
   // ---- EDITING PRE-FILL ----------------------------------------------------
   useEffect(() => {
@@ -51,12 +54,16 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
       // Determine file type based on extension
       const getFileType = (fileName, fileType) => {
         if (fileType.includes("pdf")) return "pdf"
-        if (fileType.includes("word") || fileType.includes("document") || 
-            fileName.endsWith('.doc') || fileName.endsWith('.docx')) return "doc"
-        if (fileType.includes("sheet") || fileName.endsWith('.xls') || 
-            fileName.endsWith('.xlsx')) return "spreadsheet"
+        if (
+          fileType.includes("word") ||
+          fileType.includes("document") ||
+          fileName.endsWith(".doc") ||
+          fileName.endsWith(".docx")
+        )
+          return "doc"
+        if (fileType.includes("sheet") || fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) return "spreadsheet"
         if (fileType.includes("image") || fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) return "image"
-        if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) return "archive"
+        if (fileName.endsWith(".zip") || fileName.endsWith(".rar")) return "archive"
         return "document" // default type
       }
 
@@ -65,7 +72,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
         name: file.name,
         type: getFileType(file.name, file.type),
         size: file.size,
-        uploadDate: new Date().toISOString().split('T')[0],
+        uploadDate: new Date().toISOString().split("T")[0],
         comments: "",
         file,
       }
@@ -146,10 +153,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
       })
 
 
-      const response = await fetch("https://taxation-backend.onrender.com/api/tax-return", {
+      const response = await fetch(`${BASE_URL}/api/tax-return`, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: submitData,
       })
@@ -170,10 +177,19 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
 
       const result = await response.json()
       onSubmit?.(result)
+      customer.onReturnAdded?.()
     } catch (err) {
       setError(err?.message || "Failed to save tax return. Please try again.")
     } finally {
       setLoading(false)
+    }
+  }
+  const handleClick = () => {
+    // open input box when clicking on Other card
+    setShowInput(true)
+    // if nothing entered yet, reset type to empty string
+    if (formData.type === "other") {
+      setFormData({ ...formData, type: "" })
     }
   }
 
@@ -230,7 +246,9 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1040" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        formData.type === "1040"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setFormData({ ...formData, type: "1040" })}
                     >
@@ -250,7 +268,9 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1065" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        formData.type === "1065"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => setFormData({ ...formData, type: "1065" })}
                     >
@@ -264,6 +284,59 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                         </div>
                       </div>
                     </motion.div>
+                     {/* 1020 Card */}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.type === "1020" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setFormData({ ...formData, type: "1020" })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-orange-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Form 1020</h3>
+                          <p className="text-sm text-gray-500">Applying Memebership</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    {/* other Card */}
+                    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+        showInput && formData.type ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+      }`}
+      onClick={handleClick}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <FileText className="w-5 h-5 text-yellow-600" />
+        </div>
+        <div>
+          <h3 className="font-medium text-gray-900">Other</h3>
+          <p className="text-sm text-gray-500">Enter custom document name</p>
+        </div>
+      </div>
+
+      {/* Show input when clicked */}
+      {showInput && (
+        <div className="mt-3">
+          <input
+            type="text"
+            placeholder="Enter document name"
+            value={formData.type || ""}
+            onChange={(e) =>
+              setFormData({ ...formData, type: e.target.value })
+            }
+            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </div>
+      )}
+    </motion.div>
                   </div>
                 </div>
 
@@ -274,8 +347,8 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     Upload any type of supporting documents. Maximum file size: 10MB per file
                   </p>
 
-                  <FileUpload 
-                    onFileUpload={handleFileUpload} 
+                  <FileUpload
+                    onFileUpload={handleFileUpload}
                     accept="*" // Accept all file types
                     multiple // Allow multiple file selection
                   />

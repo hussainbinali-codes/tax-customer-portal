@@ -10,8 +10,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Building2 } from "lucide-react"
+import {BASE_URL} from "@/src/components/BaseUrl"
 
-const API_BASE_URL = "https://taxation-backend.onrender.com/api"
+const API_BASE_URL = `${BASE_URL}/api`
 
 const Login = () => {
   const [activeTab, setActiveTab] = useState("email")

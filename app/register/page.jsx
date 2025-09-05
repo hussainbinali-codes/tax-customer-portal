@@ -14,6 +14,7 @@ import { Checkbox } from "../../components/ui/checkbox"
 import { Loader2, Mail, Building2 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import {BASE_URL} from "@/src/components/BaseUrl"
 
 const Register = () => {
   const [activeTab, setActiveTab] = useState("email")
@@ -100,7 +101,7 @@ const Register = () => {
       }
 
       // Use proxy route instead of direct API call
-      const response = await fetch("https://taxation-backend.onrender.com/api/register", {
+      const response = await fetch(`${BaseUrl}/api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
