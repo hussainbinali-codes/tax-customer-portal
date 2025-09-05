@@ -752,12 +752,8 @@ const Returns = () => {
               transition={{ duration: 0.5 }}
               className="space-y-6"
             >
-              {/* Error message */}
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                  <span className="block sm:inline">{error}</span>
-                </div>
-              )}
+              <>
+             
 
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -932,6 +928,7 @@ const Returns = () => {
                   </div>
                 )}
               </div>
+              </>
             </motion.div>
           )}
         </main>

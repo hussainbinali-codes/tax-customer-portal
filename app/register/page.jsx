@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { useAuth } from "../../src/contexts/AuthContext"
+// import { useAuth } from "../../src/contexts/AuthContext"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,7 +30,7 @@ const Register = () => {
   const [success, setSuccess] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
 
-  const { login } = useAuth()
+  // const { login } = useAuth()
   const router = useRouter()
 
   const handleInputChange = (e) => {
@@ -112,24 +112,13 @@ const Register = () => {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess("Registration successful! Redirecting to dashboard...")
+        setSuccess("Registration successful! Please login...")
         
-        // Create user profile and login
-        const userProfile = {
-          uid: data.user?.uid || Date.now().toString(),
-          name: formData.name,
-          email: formData.email,
-          role: formData.role,
-          createdAt: new Date().toISOString(),
-        }
-        localStorage.setItem("userProfile", JSON.stringify(userProfile))
-
-        // Login user
-        login(userProfile)
         
-        // Redirect to dashboard after a brief delay
+        
+        // Redirect to login after a brief delay
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/login")
         }, 1500)
       } else {
         setError(data.message || "Registration failed. Please try again.")
