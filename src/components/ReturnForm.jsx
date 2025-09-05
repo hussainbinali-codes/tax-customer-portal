@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "../../components/ui/alert"
 import { Badge } from "../../components/ui/badge"
 import FileUpload from "./FileUpload"
 import { X, FileText, Loader2, Trash2 } from "lucide-react"
-import { validateFileType, validateFileSize } from "../utils/validators"
+import { validateFileSize } from "../utils/validators"
 
 const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
   const [formData, setFormData] = useState({
@@ -21,9 +21,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const token = customer.token
-  console.log(token , 'token')
   const customerName = customer.name
-  console.log(customerName , 'customerName')
 
   // ---- EDITING PRE-FILL ----------------------------------------------------
   useEffect(() => {
@@ -38,39 +36,36 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
     }
   }, [editingReturn])
 
-  const allowedFileTypes = [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-  ]
-
+  // Remove file type restrictions - accept all file types
   const handleFileUpload = (files) => {
     const validFiles = []
     const errors = []
 
     Array.from(files).forEach((file) => {
-      if (!validateFileType(file, allowedFileTypes)) {
-        errors.push(`${file.name}: Invalid file type`)
-        return
-      }
+      // Only validate file size, not type
       if (!validateFileSize(file, 10)) {
         errors.push(`${file.name}: File too large (max 10MB)`)
         return
       }
 
+      // Determine file type based on extension
+      const getFileType = (fileName, fileType) => {
+        if (fileType.includes("pdf")) return "pdf"
+        if (fileType.includes("word") || fileType.includes("document") || 
+            fileName.endsWith('.doc') || fileName.endsWith('.docx')) return "doc"
+        if (fileType.includes("sheet") || fileName.endsWith('.xls') || 
+            fileName.endsWith('.xlsx')) return "spreadsheet"
+        if (fileType.includes("image") || fileName.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)) return "image"
+        if (fileName.endsWith('.zip') || fileName.endsWith('.rar')) return "archive"
+        return "document" // default type
+      }
+
       const newDocument = {
         id: Date.now().toString() + Math.random().toString(36).slice(2, 11),
         name: file.name,
-        type: file.type.includes("pdf")
-          ? "pdf"
-          : file.type.includes("word") || file.type.includes("document")
-          ? "docx"
-          : "image",
+        type: getFileType(file.name, file.type),
         size: file.size,
-        uploadDate: new Date().toISOString().split("T")[0],
+        uploadDate: new Date().toISOString().split('T')[0],
         comments: "",
         file,
       }
@@ -150,12 +145,12 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
         submitData.append("documents", doc.file)
       })
 
-      console.log("🔑 Sending token:", token)
-      console.log("📦 Payload:", Object.fromEntries(submitData.entries()))
 
       const response = await fetch("https://taxation-backend.onrender.com/api/tax-return", {
         method: "POST",
-       
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
         body: submitData,
       })
 
@@ -276,10 +271,14 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                 <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
                   <Label className="text-base font-medium">Documents</Label>
                   <p className="text-sm text-gray-500 mb-4">
-                    Upload supporting documents (PDF, Word, Images). Maximum file size: 10MB
+                    Upload any type of supporting documents. Maximum file size: 10MB per file
                   </p>
 
-                  <FileUpload onFileUpload={handleFileUpload} />
+                  <FileUpload 
+                    onFileUpload={handleFileUpload} 
+                    accept="*" // Accept all file types
+                    multiple // Allow multiple file selection
+                  />
 
                   {/* Document List */}
                   {formData.documents.length > 0 && (

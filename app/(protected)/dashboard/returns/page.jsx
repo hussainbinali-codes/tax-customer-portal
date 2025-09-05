@@ -146,7 +146,6 @@ const Returns = () => {
     const loadUserProfile = () => {
       try {
         const storedProfile = localStorage.getItem("userProfile")
-        console.log("Stored Profile:", storedProfile)
         if (storedProfile) {
           const parsedProfile = JSON.parse(storedProfile)
           setUserProfile(parsedProfile)
@@ -262,7 +261,6 @@ const Returns = () => {
 
     // Use the backend download endpoint
     const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`;
-    console.log("Download URL:", downloadUrl);
 
     // Create a fetch request to get the file
     const response = await fetch(downloadUrl);
