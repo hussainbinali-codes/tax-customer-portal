@@ -22,19 +22,18 @@ const FileUpload = ({ onFileUpload, multiple = true, accept = ".pdf,.doc,.docx,.
   const handleDrop = (e) => {
     e.preventDefault()
     setDragOver(false)
-    const files = e.dataTransfer.files
+    const files = Array.from(e.dataTransfer.files) // ✅ convert FileList to array
     if (files.length > 0) {
       onFileUpload(files)
     }
   }
 
   const handleFileSelect = (e) => {
-    const files = e.target.files
+    const files = Array.from(e.target.files) // ✅ convert FileList to array
     if (files.length > 0) {
       onFileUpload(files)
     }
-    // Reset input value to allow selecting the same file again
-    e.target.value = ""
+    e.target.value = "" // reset to allow re-uploading same file
   }
 
   const handleClick = () => {
