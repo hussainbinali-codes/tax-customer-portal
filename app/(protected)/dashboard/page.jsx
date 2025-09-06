@@ -180,7 +180,7 @@ const Dashboard = () => {
                           <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                           <p className="text-gray-500">No tax returns yet</p>
                           <Button asChild className="mt-2">
-                            <Link href="/dashboard/returns">Create Your First Return</Link>
+                            <Link href="/returns">Create Your First Return</Link>
                           </Button>
                         </div>
                       )}
@@ -250,7 +250,7 @@ const Dashboard = () => {
                     className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
                     asChild
                   >
-                    <Link href="/dashboard/documents">
+                    <Link href="/documents">
                       <FolderOpen className="w-6 h-6" />
                       <span className="font-medium">Upload Documents</span>
                       <span className="text-xs text-gray-500">Add supporting files</span>

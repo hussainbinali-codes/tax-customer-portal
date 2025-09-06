@@ -35,7 +35,7 @@ const nextConfig = {
         destination: '/',
       },
       {
-        source: '/dashboard/:path*',
+        source: '/dashboard/returns/:path*',
         destination: '/',
       },
       {

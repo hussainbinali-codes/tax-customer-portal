@@ -197,7 +197,7 @@ export default function HomePage() {
     if (loading) return
 
     if (currentUser) {
-      router.push("/dashboard")
+      router.push("/dashboard/returns")
     } else {
       router.push("/login")
     }
