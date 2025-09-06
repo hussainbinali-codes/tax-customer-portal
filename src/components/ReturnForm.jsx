@@ -240,7 +240,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                 {/* Return Type Selection */}
                 <div>
                   <Label className="text-base font-medium">Return Type</Label>
-                  <div className="mt-2 grid grid-cols-2 gap-4">
+                  <div className="mt-2 grid grid-cols-4 gap-4">
                     {/* 1040 Card */}
                     <motion.div
                       whileHover={{ scale: 1.02 }}
@@ -254,7 +254,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-blue-600" />
+                          <FileText className="w-5 h-5 text-red-600" />
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-900">Form 1040</h3>
@@ -276,7 +276,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-green-600" />
+                          <FileText className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-900">Form 1065</h3>
@@ -284,22 +284,106 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                         </div>
                       </div>
                     </motion.div>
-                     {/* 1020 Card */}
+                     {/* Form 1120 */}
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1020" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        formData.type === "1120" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
                       }`}
-                      onClick={() => setFormData({ ...formData, type: "1020" })}
+                      onClick={() => setFormData({ ...formData, type: "1120" })}
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-orange-600" />
+                          <FileText className="w-5 h-5 text-orange-300" />
                         </div>
                         <div>
-                          <h3 className="font-medium text-gray-900">Form 1020</h3>
-                          <p className="text-sm text-gray-500">Applying Memebership</p>
+                          <h3 className="font-medium text-gray-900">Form 1120</h3>
+                          <p className="text-sm text-gray-500">C-Corporations</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    {/* Form 1120S */}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.type === "1120S"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setFormData({ ...formData, type: "1120S" })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Form 1120-S</h3>
+                          <p className="text-sm text-gray-500">S-Corporations</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    {/* Form 940 */}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.type === "940"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setFormData({ ...formData, type: "940" })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Form 940</h3>
+                          <p className="text-sm text-gray-500">Employer's Annual Federal Unemployment (FUTA) Tax Return</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    {/* Form 1041*/}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.type === "1041"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setFormData({ ...formData, type: "1041" })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Form 1041</h3>
+                          <p className="text-sm text-gray-500">U.S. Income Tax Return for Estates and Trusts</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    {/* Form 990*/}
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                        formData.type === "990"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => setFormData({ ...formData, type: "990" })}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Form 990</h3>
+                          <p className="text-sm text-gray-500">Return of Organization Exempt From Income Tax</p>
                         </div>
                       </div>
                     </motion.div>

@@ -109,7 +109,7 @@ const Login = () => {
         login(userData)
         
         // Redirect to dashboard
-        router.push("/dashboard")
+        router.push("/dashboard/returns")
       } else {
         setError(data.message || "Invalid OTP. Please try again.")
       }
