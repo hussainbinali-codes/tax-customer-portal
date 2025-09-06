@@ -155,12 +155,12 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
               >
                 <div className=" rounded-xl flex items-center justify-center shadow-lg">
                   {/* <Building2 className="w-6 h-6 text-primary" /> */}
-                  {/* <img src="/favicon.svg" alt="logo" className="w-8 h-8" /> */}
+                  <img src="/favicon.svg" alt="logo" className="w-8 h-8" />
                 </div>
                 <div>
-                  <img src="/dark_invertio_logo (1)_220_70.png" alt="invertio-logo" className="w-50" />
-                  {/* <h1 className="font-bold text-lg text-sidebar-foreground">Invertio.us</h1> */}
-                  {/* <p className="text-xs text-sidebar-foreground/80">Invertio Taxation Company</p> */}
+                  {/* <img src="/dark_invertio_logo (1)_220_70.png" alt="invertio-logo" className="w-50" /> */}
+                  <h1 className="font-bold text-lg text-sidebar-foreground">Invertio.us</h1>
+                  <p className="text-xs text-sidebar-foreground/80">Invertio Taxation Company</p>
                 </div>
               </motion.div>
             )}

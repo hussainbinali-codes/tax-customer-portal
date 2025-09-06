@@ -31,6 +31,16 @@ import DashboardLayout from "@/src/components/DashboardLayout"
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <title>Invertio.us – Invertio Taxation Company</title>
+        <meta
+          name="description"
+          content="Professional taxation management platform with comprehensive document handling, payment processing, and business management solutions"
+        />
+        <meta name="keywords" content="taxation, business management, document handling, payment processing, tax returns, Invertio" />
+        <meta name="author" content="Invertio Taxation Company" />
+      </head>
+      <link rel="icon" type="image/x-icon" href="/favicon.svg" />
       <body>
         <AuthProvider>
         {/* <DashboardLayout> */}
