@@ -46,8 +46,8 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
 
     Array.from(files).forEach((file) => {
       // Only validate file size, not type
-      if (!validateFileSize(file, 10)) {
-        errors.push(`${file.name}: File too large (max 10MB)`)
+      if (!validateFileSize(file, 50)) {
+        errors.push(`${file.name}: File too large (max 50MB)`)
         return
       }
 
