@@ -23,11 +23,17 @@ import {
   X,
   Loader2,
   Download,
+  FileCheck2,
+  FilePenLine,
+  FileUp,
+  TrendingUp,
+  TrendingDown,
+  Filter,
+  ChevronDown,
 } from "lucide-react"
 import ReturnForm from "@/src/components/ReturnForm"
 import { setStoredData } from "@/src/data/seed"
 import {BASE_URL} from "@/src/components/BaseUrl"
-
 
 // Helper components
 function formatDate(iso) {
@@ -59,8 +65,6 @@ function DocIcon({ type, className }) {
   return <FileText className={c} />
 }
 
-// const BASE_URL = "https://taxation-backend.onrender.com"
-
 const Returns = () => {
   const getUserId = () => {
     try {
@@ -84,6 +88,12 @@ const Returns = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Filter states
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [typeFilter, setTypeFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("all")
+  const [showFilters, setShowFilters] = useState(false)
 
   // CustomerDetail state
   const [selectedReturnId, setSelectedReturnId] = useState(null)
@@ -113,7 +123,14 @@ const Returns = () => {
     setError(null)
 
     try {
-      const response = await fetch(`${BASE_URL}/api/tax-returns/${userId}`)
+      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/tax-returns/${userId}`,
+        {
+          headers : {
+            "ngrok-skip-browser-warning": "true"
+          }
+        }
+      )
+      console.log("Fetch returns response:", response)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch returns: ${response.status}`)
@@ -125,8 +142,9 @@ const Returns = () => {
 
       // Transform API data to match our expected format
       const transformedReturns = data.map((returnItem) => ({
+      
         id: returnItem.id.toString(),
-        name: `Return #${returnItem.id}`,
+        name: returnItem.tax_name || `Return #${returnItem.id}`,
         type: returnItem.return_type,
         price: returnItem.price,
         pricing_type: returnItem.pricing_type,
@@ -137,6 +155,7 @@ const Returns = () => {
         taxYear: "2023",
         originalData: returnItem,
       }))
+      console.log(data)
 
       setReturns(transformedReturns)
     } catch (error) {
@@ -293,9 +312,7 @@ const Returns = () => {
     }
 
     const profile = loadUserProfile()
-    
-    
-  }, [])
+  }, [])
 
   // Load detailed data when a return is selected
   useEffect(() => {
@@ -410,21 +427,31 @@ const Returns = () => {
     e.currentTarget.value = ""
   }
 
+  // Calculate stats from API data
   const stats = {
     total: returns.length,
-    pending: returns.filter((r) => r.status === "pending").length,
-    inReview: returns.filter((r) => r.status === "In Review").length,
-    completed: returns.filter((r) => r.status === "Completed").length,
+    inReview: returns.filter((r) => r.status.toLowerCase() === "in review").length,
+    initialRequest: returns.filter((r) => r.status.toLowerCase() === "initial request").length,
+    documentVerified: returns.filter((r) => r.status.toLowerCase() === "document verified").length,
+    inPreparation: returns.filter((r) => r.status.toLowerCase() === "in preparation").length,
+    readyToFile: returns.filter((r) => r.status.toLowerCase() === "ready to file").length,
+    filed: returns.filter((r) => r.status.toLowerCase() === "filed return").length,
   }
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Completed":
+    switch (status.toLowerCase()) {
+      case "completed":
+      case "document verified":
+      case "filed return":
         return "bg-green-100 text-green-800"
-      case "Document verified":
-        return "bg-green-100 text-green-800"
-      case "In Review":
+      case "in review":
         return "bg-blue-100 text-blue-800"
+      case "in preparation":
+        return "bg-indigo-100 text-indigo-800"
+      case "ready to file":
+        return "bg-purple-100 text-purple-800"
+      case "initial request":
+        return "bg-amber-100 text-amber-800"
       case "pending":
         return "bg-yellow-100 text-yellow-800"
       default:
@@ -432,13 +459,31 @@ const Returns = () => {
     }
   }
 
-  // Filter returns based on search term
-  const filteredReturns = returns.filter(
-    (returnItem) =>
-      returnItem.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      returnItem.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      returnItem.status?.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // Get unique statuses and types for filter options
+  const statusOptions = ["all", ...new Set(returns.map(item => item.status))];
+  const typeOptions = ["all", ...new Set(returns.map(item => item.type))];
+
+  // Filter returns based on search term and filters
+  const filteredReturns = returns.filter((returnItem) => {
+    // Text search - search across multiple fields
+    const searchTermLower = searchTerm.toLowerCase();
+    const matchesSearch = 
+      returnItem.id.toString().toLowerCase().includes(searchTermLower) ||
+      returnItem.type?.toLowerCase().includes(searchTermLower) ||
+      returnItem.status?.toLowerCase().includes(searchTermLower) ||
+      returnItem.name?.toLowerCase().includes(searchTermLower);
+    
+    // Status filter
+    const matchesStatus = statusFilter === "all" || returnItem.status === statusFilter;
+    
+    // Type filter
+    const matchesType = typeFilter === "all" || returnItem.type === typeFilter;
+    
+    // Date filter (simplified implementation)
+    const matchesDate = dateFilter === "all" || true; // Add date filtering logic as needed
+    
+    return matchesSearch && matchesStatus && matchesType && matchesDate;
+  });
 
   const detailedReturns = returnDetails
     ? [
@@ -465,8 +510,8 @@ const Returns = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+      <div className="flex-1 flex flex-col ">
+        <main className="flex-1  p-4 lg:p-6">
           {selectedReturnId ? (
             // Customer Detail View
             <div className="mx-auto max-w-6xl space-y-6">
@@ -753,8 +798,6 @@ const Returns = () => {
               className="space-y-6"
             >
               <>
-             
-
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -776,69 +819,233 @@ const Returns = () => {
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Returns</CardTitle>
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stats.total}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+  {/* In Review Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-blue-100">
+        <FileText className="h-4 w-4 text-blue-600" />
+      </div>
+      <h3 className="text-xs font-medium text-blue-600">In Review</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-blue-600">{stats.inReview}</div>
+      <div className="mt-0.5 text-xs text-blue-600 flex items-center">
+        <TrendingUp className="h-3 w-3 text-blue-600 mr-1" />
+        <span className="text-blue-600 font-medium">
+          {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                      <Clock className="h-4 w-4 text-yellow-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+  {/* Initial Request Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-amber-100">
+        <Clock className="h-4 w-4 text-amber-600" />
+      </div>
+      <h3 className="text-xs font-medium text-amber-600">Initial Request</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-amber-600">{stats.initialRequest}</div>
+      <div className="mt-0.5 text-xs text-amber-600 flex items-center">
+        <TrendingUp className="h-3 w-3 text-amber-300 mr-1" />
+        <span className="text-amber-300 font-medium">
+          {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">In Review</CardTitle>
-                      <Clock className="h-4 w-4 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-blue-600">{stats.inReview}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+  {/* Document Verified Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-green-100">
+        <FileCheck2 className="h-4 w-4 text-green-600" />
+      </div>
+      <h3 className="text-xs font-medium text-green-600">Document Verified</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-green-600">{stats.documentVerified}</div>
+      <div className="mt-0.5 text-xs text-green-600 flex items-center">
+        <TrendingUp className="h-3 w-3 text-green-300 mr-1" />
+        <span className="text-green-300 font-medium">
+          {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Completed</CardTitle>
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
+  {/* In Preparation Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-indigo-100">
+        <FilePenLine className="h-4 w-4 text-indigo-600" />
+      </div>
+      <h3 className="text-xs font-medium text-indigo-600">In Preparation</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-indigo-600">{stats.inPreparation}</div>
+      <div className="mt-0.5 text-xs text-indigo-600 flex items-center">
+        <TrendingUp className="h-3 w-3 text-indigo-300 mr-1" />
+        <span className="text-indigo-300 font-medium">
+          {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
 
-              {/* Search Bar */}
-              {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search returns..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
+  {/* Ready to File Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white "
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-purple-100">
+        <FileUp className="h-4 w-4 text-purple-600" />
+      </div>
+      <h3 className="text-xs font-medium text-purple-600">Ready to File</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-purple-600">{stats.readyToFile}</div>
+      <div className="mt-0.5 text-xs text-purple-600 flex items-center">
+        <TrendingUp className="h-3 w-3 text-purple-300 mr-1" />
+        <span className="text-purple-300 font-medium">
+          {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
+
+  {/* Filed Return Card */}
+  <motion.div 
+    whileHover={{ y: -3 }} 
+    transition={{ duration: 0.2 }}
+    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-teal-500 to-teal-600 text-white"
+  >
+    <div className="flex flex-col items-start justify-between mb-2 gap-2">
+      <div className="p-1.5 rounded-lg bg-teal-100">
+        <CheckCircle className="h-4 w-4 text-teal-600" />
+      </div>
+      <h3 className="text-xs font-medium text-white">Filed Return</h3>
+    </div>
+    <div>
+      <div className="text-xl font-bold text-white">{stats.filed}</div>
+      <div className="mt-0.5 text-xs text-white flex items-center">
+        <TrendingUp className="h-3 w-3 text-teal-300 mr-1" />
+        <span className="text-teal-300 font-medium">
+          {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}%
+        </span> of total
+      </div>
+    </div>
+  </motion.div>
+</div>
+
+              {/* Search and Filter Bar */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search returns by ID, type, status, or name..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                    >
+                      <Filter className="h-4 w-4" />
+                      Filters
+                      <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {(searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all") && (
+                      <button
+                        onClick={() => {
+                          setSearchTerm("")
+                          setStatusFilter("all")
+                          setTypeFilter("all")
+                          setDateFilter("all")
+                        }}
+                        className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div> */}
+                
+                {/* Expanded Filters */}
+                {showFilters && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="all">All Statuses</option>
+                        {statusOptions.filter(opt => opt !== "all").map((status) => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                      <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="all">All Types</option>
+                        {typeOptions.filter(opt => opt !== "all").map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                      <select
+                        value={dateFilter}
+                        onChange={(e) => setDateFilter(e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="all">All Dates</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Returns Table */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
@@ -848,6 +1055,9 @@ const Returns = () => {
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Return ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          company/Person Name
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Documents
@@ -871,6 +1081,9 @@ const Returns = () => {
                         <tr key={returnItem.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">#{returnItem.id}</div>
+                          </td>
+                           <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">#{returnItem.name}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center">
@@ -923,7 +1136,9 @@ const Returns = () => {
                     <Users className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-2 text-sm font-medium text-gray-900">No returns found</h3>
                     <p className="mt-1 text-sm text-gray-500">
-                      {searchTerm ? "Try adjusting your search terms." : "Get started by adding a new return."}
+                      {searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all" 
+                        ? "Try adjusting your search or filter terms." 
+                        : "Get started by adding a new return."}
                     </p>
                   </div>
                 )}

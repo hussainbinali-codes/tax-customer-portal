@@ -11,7 +11,8 @@ import { Badge } from "../../components/ui/badge"
 import FileUpload from "./FileUpload"
 import { X, FileText, Loader2, Trash2 } from "lucide-react"
 import { validateFileSize } from "../utils/validators"
-import {BASE_URL} from "@/src/components/BaseUrl"
+import { BASE_URL } from "@/src/components/BaseUrl"
+import { Input } from "@/components/ui/input"
 
 
 const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
@@ -22,7 +23,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-    const [showInput, setShowInput] = useState(false)
+  const [showInput, setShowInput] = useState(false)
   const token = customer?.token
   const customerName = customer?.name
 
@@ -147,13 +148,15 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
       submitData.append("createdby_type", "individual")
       submitData.append("createdby_id", String(customer.id)) // ✅ always from customer
       submitData.append("notes", formData.notes)
+      submitData.append("companyname", formData.companyname || "")
+      submitData.append("phone", formData.phone || "")
 
       formData.documents.forEach((doc) => {
         submitData.append("documents", doc.file)
       })
 
 
-      const response = await fetch(`${BASE_URL}/api/tax-return`, {
+      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/tax-return`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -171,7 +174,7 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
         try {
           const errorData = await response.json()
           message = errorData?.message || message
-        } catch (_) {}
+        } catch (_) { }
         throw new Error(message)
       }
 
@@ -245,11 +248,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1040"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "1040"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "1040" })}
                     >
                       <div className="flex items-center gap-3">
@@ -267,11 +269,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1065"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "1065"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "1065" })}
                     >
                       <div className="flex items-center gap-3">
@@ -284,13 +285,12 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                         </div>
                       </div>
                     </motion.div>
-                     {/* Form 1120 */}
+                    {/* Form 1120 */}
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1120" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-                      }`}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "1120" ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "1120" })}
                     >
                       <div className="flex items-center gap-3">
@@ -307,11 +307,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1120S"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "1120S"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "1120S" })}
                     >
                       <div className="flex items-center gap-3">
@@ -328,11 +327,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "940"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "940"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "940" })}
                     >
                       <div className="flex items-center gap-3">
@@ -349,11 +347,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "1041"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "1041"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "1041" })}
                     >
                       <div className="flex items-center gap-3">
@@ -370,11 +367,10 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                        formData.type === "990"
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${formData.type === "990"
                           ? "border-primary bg-primary/5"
                           : "border-gray-200 hover:border-gray-300"
-                      }`}
+                        }`}
                       onClick={() => setFormData({ ...formData, type: "990" })}
                     >
                       <div className="flex items-center gap-3">
@@ -389,39 +385,71 @@ const ReturnForm = ({ isOpen, onClose, onSubmit, editingReturn, customer }) => {
                     </motion.div>
                     {/* other Card */}
                     <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-        showInput && formData.type ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
-      }`}
-      onClick={handleClick}
-    >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-          <FileText className="w-5 h-5 text-yellow-600" />
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-900">Other</h3>
-          <p className="text-sm text-gray-500">Enter custom document name</p>
-        </div>
-      </div>
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${showInput && formData.type ? "border-primary bg-primary/5" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      onClick={handleClick}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-yellow-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">Other</h3>
+                          <p className="text-sm text-gray-500">Enter custom document name</p>
+                        </div>
+                      </div>
 
-      {/* Show input when clicked */}
-      {showInput && (
-        <div className="mt-3">
-          <input
-            type="text"
-            placeholder="Enter document name"
-            value={formData.type || ""}
-            onChange={(e) =>
-              setFormData({ ...formData, type: e.target.value })
-            }
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-      )}
-    </motion.div>
+                      {/* Show input when clicked */}
+                      {showInput && (
+                        <div className="mt-3">
+                          <input
+                            type="text"
+                            placeholder="Enter document name"
+                            value={formData.type || ""}
+                            onChange={(e) =>
+                              setFormData({ ...formData, type: e.target.value })
+                            }
+                            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          />
+                        </div>
+                      )}
+                    </motion.div>
                   </div>
+                  
+                  
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Company/Person Name Field */}
+                          <div>
+                            <Label htmlFor="companyname" className="text-sm font-medium">
+                              Company/Person Name
+                            </Label>
+                            <Input
+                              id="companyname"
+                              type="text"
+                              placeholder="Enter company or person name"
+                              value={formData.companyname}
+                              onChange={(e) => setFormData({ ...formData, companyname: e.target.value })}
+                              className="mt-1"
+                            />
+                          </div>
+                          
+                          {/* Mobile Number Field */}
+                          <div>
+                            <Label htmlFor="phone" className="text-sm font-medium">
+                              Mobile Number
+                            </Label>
+                            <Input
+                              id="phone"
+                              type="tel"
+                              placeholder="Enter mobile number"
+                              value={formData.phone}
+                              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                              className="mt-1"
+                            />
+                          </div>
                 </div>
 
                 {/* File Upload Section */}
