@@ -70,8 +70,8 @@ const Login = () => {
 
     try {
       const identifier = activeTab === "email" ? email.toLowerCase().trim() : mobile.trim()
-      
-      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/login`, {
+
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

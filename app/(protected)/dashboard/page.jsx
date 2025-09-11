@@ -9,6 +9,7 @@ import { Badge } from "../../../components/ui/badge"
 import { FileText, FolderOpen, CreditCard, TrendingUp, Clock, Plus, ArrowRight, Activity } from "lucide-react"
 import { getStoredData, seedReturns, seedInvoices, seedActivityLogs } from "@/src/data/seed"
 import { formatCurrency, formatDate } from "@/src/utils/validators"
+import { BASE_URL } from "@/src/components/BaseUrl"
 
 const Dashboard = () => {
   const [returns, setReturns] = useState([])
@@ -44,7 +45,7 @@ const Dashboard = () => {
   const fetchReturns = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/getClientDashboard/${userId}`, {
+      const response = await fetch(`${BASE_URL}/api/getClientDashboard/${userId}`, {
         headers: {
           "ngrok-skip-browser-warning": "true"
         }
@@ -70,7 +71,7 @@ const Dashboard = () => {
   const fetchActivityLogs = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/getActivites/${userId}`, {
+      const response = await fetch(`${BASE_URL}/api/getActivites/${userId}`, {
         headers: {
           "ngrok-skip-browser-warning": "true"
         }

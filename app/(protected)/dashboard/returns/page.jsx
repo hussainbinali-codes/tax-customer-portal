@@ -123,7 +123,7 @@ const Returns = () => {
     setError(null)
 
     try {
-      const response = await fetch(`https://662ea1b4973e.ngrok-free.app/api/tax-returns/${userId}`,
+      const response = await fetch(`${BASE_URL}/api/tax-returns/${userId}`,
         {
           headers : {
             "ngrok-skip-browser-warning": "true"
