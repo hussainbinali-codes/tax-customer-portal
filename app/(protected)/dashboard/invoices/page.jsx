@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard } from "lucide-react"
+import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle } from "lucide-react"
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([])
@@ -13,18 +13,36 @@ export default function Invoices() {
   const [filteredInvoices, setFilteredInvoices] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
   const [isPaying, setIsPaying] = useState(false)
+  const [payingInvoiceId, setPayingInvoiceId] = useState(null)
 
   useEffect(() => {
-    const userString = localStorage.getItem('demoUser')
-    const user = userString ? JSON.parse(userString) : null
-    const loggedInUser = {
-      id: user?.uid || 1,
-      name: user?.displayName || "Tax Professional",
-      email: user?.email || "taxpro@example.com"
+    try {
+      const userString = localStorage.getItem('user')
+      const user = userString ? JSON.parse(userString) : null
+      console.log('user', user)
+      
+      if (user) {
+        const loggedInUser = {
+          id: user?.id,
+          name: user?.name,
+          email: user?.email,
+          role: user?.role
+        }
+        setCurrentUser(loggedInUser)
+      } else {
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error)
+      setIsLoading(false)
     }
-    setCurrentUser(loggedInUser)
-    loadInvoices()
   }, [])
+
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadInvoices()
+    }
+  }, [currentUser])
 
   useEffect(() => {
     filterInvoices()
@@ -33,7 +51,7 @@ export default function Invoices() {
   const loadInvoices = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:3005/api/getInvoices/1')
+      const response = await fetch(`http://localhost:3000/api/getInvoices/${currentUser?.id}`)
       if (!response.ok) {
         throw new Error('Failed to fetch invoices')
       }
@@ -117,7 +135,7 @@ export default function Invoices() {
         <body>
           <div class="header">
             <h1>TaxPortal</h1>
-            <h2>Invoice #${invoice.id}</h2>
+            <h2>Invoice ${invoice.id}</h2>
           </div>
           
           <div class="invoice-details">
@@ -142,23 +160,24 @@ export default function Invoices() {
 
   const payNow = async (invoice) => {
     setIsPaying(true)
+    setPayingInvoiceId(invoice.id)
     
     try {
-      const response = await fetch('http://localhost:3005/create-order', {
+      const response = await fetch('http://localhost:3000/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
           amount: invoice.invoiceAmount, // Amount in USD
-          currency: 'USD', // Explicitly set to USD from frontend
+          currency: 'USD', // Force USD currency
           receipt: `rcpt_${Date.now()}`,
           notes: {
             invoice_id: invoice.id,
             customer_name: invoice.customerName
           },
           invoice_id: invoice.id,
-          createdby_type: 'user',
+          createdby_type: currentUser.role,
           createdby_id: currentUser.id
         })
       })
@@ -178,7 +197,7 @@ export default function Invoices() {
           amount: order.amount,
           currency: order.currency,
           name: 'TaxPortal',
-          description: `Payment for Invoice #${invoice.id}`,
+          description: `Payment for Invoice ${invoice.id}`,
           order_id: order.id,
           prefill: {
             name: currentUser.name,
@@ -196,7 +215,7 @@ export default function Invoices() {
           },
           handler: async function (response) {
             try {
-              const verifyResponse = await fetch('http://localhost:3005/verify-payment', {
+              const verifyResponse = await fetch('http://localhost:3000/verify-payment', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
@@ -231,6 +250,7 @@ export default function Invoices() {
           modal: {
             ondismiss: function() {
               setIsPaying(false)
+              setPayingInvoiceId(null)
             }
           }
         }
@@ -242,12 +262,14 @@ export default function Invoices() {
       
       script.onerror = () => {
         setIsPaying(false)
+        setPayingInvoiceId(null)
         alert('Failed to load payment processor')
       }
     } catch (error) {
       console.error('Error:', error)
       alert(error.message || 'Error creating payment order')
       setIsPaying(false)
+      setPayingInvoiceId(null)
     }
   }
 
@@ -341,7 +363,7 @@ export default function Invoices() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Invoice #
+                    Invoice 
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Customer
@@ -378,7 +400,7 @@ export default function Invoices() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <Receipt className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-sm font-medium text-gray-900">#{invoice.id}</span>
+                        <span className="text-sm font-medium text-gray-900">{invoice.id}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -393,7 +415,7 @@ export default function Invoices() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        $${invoice.invoiceAmount.toFixed(2)} USD
+                        ${invoice.invoiceAmount.toFixed(2)} USD
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -423,15 +445,23 @@ export default function Invoices() {
                         >
                           <Download className="w-4 h-4" />
                         </button>
-                        {invoice.status.toLowerCase() === 'pending' && (
+                        {invoice.status.toLowerCase() === 'pending' ? (
                           <button
                             onClick={() => payNow(invoice)}
-                            disabled={isPaying}
+                            disabled={isPaying && payingInvoiceId === invoice.id}
                             className="text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
                             title="Pay Invoice"
                           >
-                            <CreditCard className="w-4 h-4" />
+                            {isPaying && payingInvoiceId === invoice.id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                            ) : (
+                              <CreditCard className="w-4 h-4" />
+                            )}
                           </button>
+                        ) : (
+                          <div className="text-green-600" title="Payment Completed">
+                            <CheckCircle className="w-4 h-4" />
+                          </div>
                         )}
                       </div>
                     </td>
