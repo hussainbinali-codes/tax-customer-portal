@@ -510,8 +510,8 @@ const Returns = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <div className="flex-1 flex flex-col ">
-        <main className="flex-1  p-4 lg:p-6">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           {selectedReturnId ? (
             // Customer Detail View
             <div className="mx-auto max-w-6xl space-y-6">
@@ -819,145 +819,127 @@ const Returns = () => {
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-  {/* In Review Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-blue-100">
-        <FileText className="h-4 w-4 text-blue-600" />
-      </div>
-      <h3 className="text-xs font-medium text-blue-600">In Review</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-blue-600">{stats.inReview}</div>
-      <div className="mt-0.5 text-xs text-blue-600 flex items-center">
-        <TrendingUp className="h-3 w-3 text-blue-600 mr-1" />
-        <span className="text-blue-600 font-medium">
-          {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {/* In Review Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-blue-100">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">In Review</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.inReview}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.inReview / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
 
-  {/* Initial Request Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-amber-100">
-        <Clock className="h-4 w-4 text-amber-600" />
-      </div>
-      <h3 className="text-xs font-medium text-amber-600">Initial Request</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-amber-600">{stats.initialRequest}</div>
-      <div className="mt-0.5 text-xs text-amber-600 flex items-center">
-        <TrendingUp className="h-3 w-3 text-amber-300 mr-1" />
-        <span className="text-amber-300 font-medium">
-          {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
+                {/* Initial Request Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-amber-100">
+                      <Clock className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">Initial Request</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.initialRequest}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.initialRequest / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
 
-  {/* Document Verified Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white text-black"
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-green-100">
-        <FileCheck2 className="h-4 w-4 text-green-600" />
-      </div>
-      <h3 className="text-xs font-medium text-green-600">Document Verified</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-green-600">{stats.documentVerified}</div>
-      <div className="mt-0.5 text-xs text-green-600 flex items-center">
-        <TrendingUp className="h-3 w-3 text-green-300 mr-1" />
-        <span className="text-green-300 font-medium">
-          {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
+                {/* Document Verified Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-green-100">
+                      <FileCheck2 className="h-4 w-4 text-green-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">Document Verified</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.documentVerified}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.documentVerified / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
 
-  {/* In Preparation Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-indigo-100">
-        <FilePenLine className="h-4 w-4 text-indigo-600" />
-      </div>
-      <h3 className="text-xs font-medium text-indigo-600">In Preparation</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-indigo-600">{stats.inPreparation}</div>
-      <div className="mt-0.5 text-xs text-indigo-600 flex items-center">
-        <TrendingUp className="h-3 w-3 text-indigo-300 mr-1" />
-        <span className="text-indigo-300 font-medium">
-          {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
+                {/* In Preparation Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-indigo-100">
+                      <FilePenLine className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">In Preparation</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.inPreparation}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.inPreparation / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
 
-  {/* Ready to File Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-white "
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-purple-100">
-        <FileUp className="h-4 w-4 text-purple-600" />
-      </div>
-      <h3 className="text-xs font-medium text-purple-600">Ready to File</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-purple-600">{stats.readyToFile}</div>
-      <div className="mt-0.5 text-xs text-purple-600 flex items-center">
-        <TrendingUp className="h-3 w-3 text-purple-300 mr-1" />
-        <span className="text-purple-300 font-medium">
-          {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
+                {/* Ready to File Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-purple-100">
+                      <FileUp className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">Ready to File</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.readyToFile}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.readyToFile / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
 
-  {/* Filed Return Card */}
-  <motion.div 
-    whileHover={{ y: -3 }} 
-    transition={{ duration: 0.2 }}
-    className="rounded-xl p-3 shadow-sm hover:shadow-md transition-shadow bg-gradient-to-br from-teal-500 to-teal-600 text-white"
-  >
-    <div className="flex flex-col items-start justify-between mb-2 gap-2">
-      <div className="p-1.5 rounded-lg bg-teal-100">
-        <CheckCircle className="h-4 w-4 text-teal-600" />
-      </div>
-      <h3 className="text-xs font-medium text-white">Filed Return</h3>
-    </div>
-    <div>
-      <div className="text-xl font-bold text-white">{stats.filed}</div>
-      <div className="mt-0.5 text-xs text-white flex items-center">
-        <TrendingUp className="h-3 w-3 text-teal-300 mr-1" />
-        <span className="text-teal-300 font-medium">
-          {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}%
-        </span> of total
-      </div>
-    </div>
-  </motion.div>
-</div>
+                {/* Filed Return Card */}
+                <motion.div 
+                  whileHover={{ y: -3 }} 
+                  transition={{ duration: 0.2 }}
+                  className="rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow bg-white"
+                >
+                  <div className="flex flex-col items-start justify-between mb-2 gap-2">
+                    <div className="p-1.5 rounded-lg bg-teal-100">
+                      <CheckCircle className="h-4 w-4 text-teal-600" />
+                    </div>
+                    <h3 className="text-xs font-medium text-gray-600">Filed Return</h3>
+                  </div>
+                  <div>
+                    <div className="text-xl font-bold text-gray-900">{stats.filed}</div>
+                    <div className="mt-0.5 text-xs text-gray-500">
+                      {stats.total > 0 ? Math.round((stats.filed / stats.total) * 100) : 0}% of total
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
 
               {/* Search and Filter Bar */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -1053,25 +1035,25 @@ const Returns = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Return ID
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          company/Person Name
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          Name
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Documents
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Return Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Last Updated
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                           Actions
                         </th>
                       </tr>
@@ -1079,32 +1061,32 @@ const Returns = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredReturns.map((returnItem) => (
                         <tr key={returnItem.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">#{returnItem.id}</div>
                           </td>
-                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">#{returnItem.name}</div>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{returnItem.name}</div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <div className="flex items-center">
                               <FileText className="w-4 h-4 text-gray-400 mr-2" />
                               <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <span className="text-sm text-gray-900">{returnItem.type}</span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-4 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(returnItem.status)}`}
                             >
                               {returnItem.status}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                             {formatDate(returnItem.lastUpdated)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div className="flex items-center space-x-2">
                               <button
                                 className="text-blue-600 hover:text-blue-700 transition-colors"
