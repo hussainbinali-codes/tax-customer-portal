@@ -219,111 +219,115 @@ const Dashboard = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Returns */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Recent Tax Returns</CardTitle>
-                  <CardDescription>Your 5 most recent tax return filings</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/dashboard/returns">
-                    View All
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {returns.length > 0 ? (
-                    recentReturns.map((returnItem) => (
-                      <motion.div
-                        key={returnItem.return_id}
-                        whileHover={{ scale: 1.01 }}
-                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                            <FileText className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">Form {returnItem.return_type}</p>
-                            <p className="text-sm text-gray-500">
-                              Created {formatDate(returnItem.created_at)} • {returnItem.tax_name}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge className={getStatusColor(returnItem.return_status)}>
-                          {returnItem.return_status}
-                        </Badge>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">No tax returns yet</p>
-                      <Button asChild className="mt-2">
-                        <Link href="/dashboard/returns">Create Your First Return</Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Activity */}
-          <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest updates and changes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-4">
-                    <Activity className="w-8 h-8 text-red-400 mx-auto mb-2" />
-                    <p className="text-sm text-red-500">Failed to load activities</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={fetchActivityLogs}
-                      className="mt-2"
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                ) : recentActivity.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentActivity.map((activity, index) => (
-                      <div key={activity.id || index} className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Activity className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{activity.comment || "Activity update"}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(activity.created_at || activity.timestamp)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <Activity className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">No recent activity</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+  {/* Recent Returns */}
+  <div className="lg:col-span-2">
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>Recent Tax Returns</CardTitle>
+          <CardDescription>Your 5 most recent tax return filings</CardDescription>
         </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/returns">
+            View All
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Link>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : returns.length > 0 ? (
+          <div className="space-y-4">
+            {recentReturns.map((returnItem) => (
+              <motion.div
+                key={returnItem.return_id}
+                whileHover={{ scale: 1.01 }}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Form {returnItem.return_type}</p>
+                    <p className="text-sm text-gray-500">
+                      Created {formatDate(returnItem.created_at)} • {returnItem.tax_name}
+                    </p>
+                  </div>
+                </div>
+                <Badge className={getStatusColor(returnItem.return_status)}>
+                  {returnItem.return_status}
+                </Badge>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No tax returns yet</p>
+            <Button asChild className="mt-2">
+              <Link href="/dashboard/returns">Create Your First Return</Link>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+
+  {/* Recent Activity */}
+  <div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Activity</CardTitle>
+        <CardDescription>Latest updates and changes</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-4">
+            <Activity className="w-8 h-8 text-red-400 mx-auto mb-2" />
+            <p className="text-sm text-red-500">Failed to load activities</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchActivityLogs}
+              className="mt-2"
+            >
+              Retry
+            </Button>
+          </div>
+        ) : recentActivity.length > 0 ? (
+          <div className="space-y-4">
+            {recentActivity.map((activity, index) => (
+              <div key={activity.id || index} className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Activity className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{activity.comment || "Activity update"}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {formatDate(activity.created_at || activity.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <Activity className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-500">No recent activity</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  </div>
+</div>
 
         {/* Quick Actions */}
         <Card>

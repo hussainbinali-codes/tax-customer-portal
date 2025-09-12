@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  Menu,
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 
@@ -70,18 +71,18 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
     //   icon: FolderOpen,
     //   description: "Document library",
     // },
-    // {
-    //   name: "Invoices",
-    //   href: "/dashboard/invoices",
-    //   icon: Activity,
-    //   description: "View invoice history",
-    // },
-    // {
-    //   name: "Payments",
-    //   href: "/dashboard/payments",
-    //   icon: CreditCard,
-    //   description: " payments",
-    // },
+    {
+      name: "Invoices",
+      href: "/dashboard/invoices",
+      icon: Activity,
+      description: "View invoice history",
+    },
+    {
+      name: "Payments",
+      href: "/dashboard/payments",
+      icon: CreditCard,
+      description: " payments",
+    },
     // {
     //   name: "Settings",
     //   href: "/dashboard/settings",
@@ -121,6 +122,16 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
 
   return (
     <>
+      {/* Mobile hamburger menu button */}
+      {isMobile && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed top-4 left-4 z-40 lg:hidden p-2 rounded-md bg-sidebar text-sidebar-foreground shadow-md"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+      )}
+
       {/* Mobile backdrop */}
       {isOpen && isMobile && (
         <motion.div
@@ -154,11 +165,9 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
                 className="flex items-center gap-3"
               >
                 <div className=" rounded-xl flex items-center justify-center shadow-lg">
-                  {/* <Building2 className="w-6 h-6 text-primary" /> */}
                   <img src="/favicon.svg" alt="logo" className="w-8 h-8" />
                 </div>
                 <div>
-                  {/* <img src="/dark_invertio_logo (1)_220_70.png" alt="invertio-logo" className="w-50" /> */}
                   <h1 className="font-bold text-lg text-sidebar-foreground">Invertio.us</h1>
                   <p className="text-xs text-sidebar-foreground/80">Invertio Taxation Company</p>
                 </div>

@@ -1,6 +1,7 @@
 // pages/index.js
 import { useState } from 'react';
 import Head from 'next/head';
+import {BASE_URL} from "../src/components/BaseUrl"
 
 export default function RazorpayPayment() {
   const [amount, setAmount] = useState('');
@@ -17,7 +18,7 @@ export default function RazorpayPayment() {
 
     try {
       // Create order by calling your Express backend endpoint
-      const response = await fetch('http://localhost:3005/create-order', {
+      const response = await fetch(`${BASE_URL}/api/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -61,7 +62,7 @@ export default function RazorpayPayment() {
           },
           handler: async function (response) {
             try {
-              const verifyResponse = await fetch('http://localhost:3005/verify-payment', {
+              const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'

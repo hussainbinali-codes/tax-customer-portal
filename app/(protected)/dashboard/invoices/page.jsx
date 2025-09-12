@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard } from "lucide-react"
+import { id } from "date-fns/locale"
+import { BASE_URL } from "@/src/components/BaseUrl"
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([])
@@ -13,27 +15,40 @@ export default function Invoices() {
   const [filteredInvoices, setFilteredInvoices] = useState([])
   const [currentUser, setCurrentUser] = useState(null)
   const [isPaying, setIsPaying] = useState(false)
-
+    const userString = localStorage.getItem('userProfile ')
+    // console.log("User String from localStorage:", userString.uid)
+    //  const user = userString ? JSON.parse(userString) : null
+    // const loggedInUser = {
+    //   id: user?.uid || 1,
+    //   name: user?.displayName || "Tax Professional",
+    //   email: user?.email || "taxpro@example.com"
+    // }
   useEffect(() => {
-    const userString = localStorage.getItem('demoUser')
-    const user = userString ? JSON.parse(userString) : null
+    const userString = localStorage.getItem('userProfile ')
+
+    const user = JSON.parse(userString)
+    console.log("User String from localStorage:", user.uid)
+
+    // console.log("User String from localStorage:", userString)
+    // const user = userString ? JSON.parse(userString) : null
     const loggedInUser = {
       id: user?.uid || 1,
       name: user?.displayName || "Tax Professional",
       email: user?.email || "taxpro@example.com"
     }
     setCurrentUser(loggedInUser)
-    loadInvoices()
+    loadInvoices(user.uid)
   }, [])
+  // console.log("Current User:", currentUser.id) 
 
   useEffect(() => {
     filterInvoices()
   }, [invoices, filterStatus, searchTerm])
 
-  const loadInvoices = async () => {
+  const loadInvoices = async (userId) => {
     try {
       setIsLoading(true)
-      const response = await fetch('http://localhost:3005/api/getInvoices/1')
+      const response = await fetch(`${BASE_URL}/api/getInvoices/${userId}`)
       if (!response.ok) {
         throw new Error('Failed to fetch invoices')
       }
@@ -144,7 +159,7 @@ export default function Invoices() {
     setIsPaying(true)
     
     try {
-      const response = await fetch('http://localhost:3005/create-order', {
+      const response = await fetch(`${BASE_URL}/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -196,7 +211,7 @@ export default function Invoices() {
           },
           handler: async function (response) {
             try {
-              const verifyResponse = await fetch('http://localhost:3005/verify-payment', {
+              const verifyResponse = await fetch(`${BASE_URL}/verify-payment`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'
