@@ -191,6 +191,7 @@ const Login = () => {
           email: data.user.email,
           displayName: data.user.name,
           token: data.token,
+          role : data.user.role
         }
 
         // Update auth context

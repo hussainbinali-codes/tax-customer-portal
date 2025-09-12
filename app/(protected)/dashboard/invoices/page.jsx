@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Plus, Receipt, Download, Eye, Edit, X, User, CreditCard, CheckCircle } from "lucide-react"
+import { BASE_URL } from "@/src/components/BaseUrl"
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([])
@@ -17,17 +18,16 @@ export default function Invoices() {
 
   useEffect(() => {
     try {
-      const userString = localStorage.getItem('user')
+      const userString = localStorage.getItem('userProfile')
       const user = userString ? JSON.parse(userString) : null
-      console.log('user', user)
-      
       if (user) {
         const loggedInUser = {
-          id: user?.id,
-          name: user?.name,
+          id: user?.uid,
+          name: user?.displayName,
           email: user?.email,
           role: user?.role
         }
+        console.log(loggedInUser)
         setCurrentUser(loggedInUser)
       } else {
         setIsLoading(false)
@@ -39,6 +39,7 @@ export default function Invoices() {
   }, [])
 
   useEffect(() => {
+    
     if (currentUser?.id) {
       loadInvoices()
     }
@@ -51,7 +52,7 @@ export default function Invoices() {
   const loadInvoices = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`http://localhost:3000/api/getInvoices/${currentUser?.id}`)
+      const response = await fetch(`${BASE_URL}/api/getInvoices/${currentUser?.id}`)
       if (!response.ok) {
         throw new Error('Failed to fetch invoices')
       }
@@ -163,7 +164,7 @@ export default function Invoices() {
     setPayingInvoiceId(invoice.id)
     
     try {
-      const response = await fetch('http://localhost:3000/create-order', {
+      const response = await fetch(`${BASE_URL}/api/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -215,7 +216,7 @@ export default function Invoices() {
           },
           handler: async function (response) {
             try {
-              const verifyResponse = await fetch('http://localhost:3000/verify-payment', {
+              const verifyResponse = await fetch(`${BASE_URL}/api/verify-payment`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json'

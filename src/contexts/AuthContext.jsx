@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }) => {
   const login = (user) => {
     setCurrentUser(user)
     if (typeof window !== "undefined") {
-      localStorage.setItem("userProfile", JSON.stringify(user)) // ✅ fixed key
+      localStorage.setItem("userProfile", JSON.stringify(user)) //  fixed key
     }
   }
 
