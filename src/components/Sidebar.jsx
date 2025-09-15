@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Building2,
   Menu,
+  Receipt
 } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 
@@ -62,15 +63,9 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
     {
       name: "Returns",
       href: "/dashboard/returns",
-      icon: FileText,
+      icon: Receipt,
       description: "Manage tax returns",
     },
-    // {
-    //   name: "Documents",
-    //   href: "/dashboard/documents",
-    //   icon: FolderOpen,
-    //   description: "Document library",
-    // },
     {
       name: "Invoices",
       href: "/dashboard/invoices",
@@ -83,12 +78,6 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
       icon: CreditCard,
       description: " payments",
     },
-    // {
-    //   name: "Settings",
-    //   href: "/dashboard/settings",
-    //   icon: Settings,
-    //   description: "Account settings",
-    // },
   ]
 
   const handleLogout = async () => {
@@ -213,7 +202,7 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       isActive
-                        ? "bg-sidebar-accent text-sidebar-foreground shadow-lg border border-sidebar-border"
+                        ? "bg-sidebar-accent text-sidebar-foreground shadow-lg"
                         : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                     }`}
                     onClick={() => {

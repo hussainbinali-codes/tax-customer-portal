@@ -15,6 +15,8 @@ export default function Invoices() {
   const [currentUser, setCurrentUser] = useState(null)
   const [isPaying, setIsPaying] = useState(false)
   const [payingInvoiceId, setPayingInvoiceId] = useState(null)
+  const [viewInvoice, setViewInvoice] = useState(null) // For viewing invoice
+  const [isDownloading, setIsDownloading] = useState(false) // For download state
 
   useEffect(() => {
     try {
@@ -119,44 +121,73 @@ export default function Invoices() {
     })
   }
 
-  const handlePrintInvoice = (invoice) => {
-    const printWindow = window.open('', '_blank')
-    const content = `
-      <html>
-        <head>
-          <title>Invoice #${invoice.id}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .header { text-align: center; margin-bottom: 30px; }
-            .invoice-details { margin-bottom: 20px; }
-            .totals { text-align: right; }
-            @media print { body { margin: 0; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>TaxPortal</h1>
-            <h2>Invoice ${invoice.id}</h2>
-          </div>
-          
-          <div class="invoice-details">
-            <p><strong>Customer:</strong> ${invoice.customerName}</p>
-            <p><strong>Return:</strong> ${invoice.returnName}</p>
-            <p><strong>Date:</strong> ${formatDate(invoice.createdAt)}</p>
-            <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
-            <p><strong>Status:</strong> ${invoice.status}</p>
-          </div>
+  const handleViewInvoice = (invoice) => {
+    setViewInvoice(invoice)
+  }
 
-          <div class="totals">
-            <p><strong>Total Amount:</strong> $${invoice.invoiceAmount.toFixed(2)} USD</p>
-          </div>
-        </body>
-      </html>
-    `
-    
-    printWindow.document.write(content)
-    printWindow.document.close()
-    printWindow.print()
+  const handleDownloadInvoice = async (invoice) => {
+    setIsDownloading(true)
+    try {
+      // Create a printable version of the invoice
+      const content = `
+        <html>
+          <head>
+            <title>Invoice #${invoice.id}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 40px; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .invoice-details { margin-bottom: 20px; }
+              .totals { text-align: right; margin-top: 30px; }
+              .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
+              @media print { body { margin: 0; } }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>TaxPortal</h1>
+              <h2>Invoice #${invoice.id}</h2>
+            </div>
+            
+            <div class="invoice-details">
+              <p><strong>Customer:</strong> ${invoice.customerName}</p>
+              <p><strong>Return:</strong> ${invoice.returnName}</p>
+              <p><strong>Date:</strong> ${formatDate(invoice.createdAt)}</p>
+              <p><strong>Due Date:</strong> ${formatDate(invoice.dueDate)}</p>
+              <p><strong>Status:</strong> ${invoice.status}</p>
+            </div>
+
+            <div class="totals">
+              <p><strong>Total Amount:</strong> $${invoice.invoiceAmount.toFixed(2)} USD</p>
+            </div>
+            
+            <div class="footer">
+              <p>Thank you for your business!</p>
+              <p>Generated on ${new Date().toLocaleDateString()}</p>
+            </div>
+          </body>
+        </html>
+      `
+      
+      // Create a blob from the HTML content
+      const blob = new Blob([content], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      
+      // Create a temporary anchor element for downloading
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Invoice-${invoice.id}.html`
+      document.body.appendChild(a)
+      a.click()
+      
+      // Clean up
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading invoice:', error)
+      alert('Error downloading invoice. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
   }
 
   const payNow = async (invoice) => {
@@ -291,6 +322,78 @@ export default function Invoices() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      {/* View Invoice Modal */}
+      {viewInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold">Invoice #{viewInvoice.id}</h3>
+              <button 
+                onClick={() => setViewInvoice(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">TaxPortal</h1>
+                <h2 className="text-lg text-gray-600 mt-2">Invoice #{viewInvoice.id}</h2>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <h4 className="font-medium text-gray-700">Bill To:</h4>
+                  <p className="text-gray-900">{viewInvoice.customerName}</p>
+                  <p className="text-sm text-gray-500">ID: {viewInvoice.customerId}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-600"><strong>Date:</strong> {formatDate(viewInvoice.createdAt)}</p>
+                  <p className="text-gray-600"><strong>Due Date:</strong> {formatDate(viewInvoice.dueDate)}</p>
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(viewInvoice.status)} mt-2`}>
+                    {viewInvoice.status}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="border-t border-b py-4 mb-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-gray-900">{viewInvoice.returnName}</p>
+                    <p className="text-sm text-gray-500">{viewInvoice.returnType}</p>
+                  </div>
+                  <p className="font-medium text-gray-900">${viewInvoice.invoiceAmount.toFixed(2)} USD</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mb-6">
+                <p className="text-gray-600">Subtotal</p>
+                <p className="text-gray-900">${viewInvoice.invoiceAmount.toFixed(2)} USD</p>
+              </div>
+              
+              <div className="flex justify-between items-center border-t pt-4">
+                <p className="font-bold text-lg text-gray-900">Total</p>
+                <p className="font-bold text-lg text-gray-900">${viewInvoice.invoiceAmount.toFixed(2)} USD</p>
+              </div>
+              
+              <div className="mt-8 text-center text-sm text-gray-500">
+                <p>Thank you for your business!</p>
+                <p className="mt-2">Generated on {new Date().toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="p-4 border-t flex justify-end">
+              <button
+                onClick={() => handleDownloadInvoice(viewInvoice)}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -359,7 +462,7 @@ export default function Invoices() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto xl:overflow-x-hidden">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -433,18 +536,23 @@ export default function Invoices() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center space-x-2">
                         <button 
-                          onClick={() => handlePrintInvoice(invoice)}
+                          onClick={() => handleViewInvoice(invoice)}
                           className="text-blue-600 hover:text-blue-700 transition-colors"
                           title="View Invoice"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handlePrintInvoice(invoice)}
-                          className="text-green-600 hover:text-green-700 transition-colors"
+                          onClick={() => handleDownloadInvoice(invoice)}
+                          disabled={isDownloading}
+                          className="text-green-600 hover:text-green-700 transition-colors disabled:opacity-50"
                           title="Download Invoice"
                         >
-                          <Download className="w-4 h-4" />
+                          {isDownloading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                          ) : (
+                            <Download className="w-4 h-4" />
+                          )}
                         </button>
                         {invoice.status.toLowerCase() === 'pending' ? (
                           <button

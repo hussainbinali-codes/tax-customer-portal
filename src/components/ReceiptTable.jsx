@@ -8,7 +8,6 @@ import { Badge } from "../../components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import { Search, Download, ReceiptIcon } from "lucide-react"
 import { formatCurrency, formatDate } from "../utils/validators"
-import { generateReceiptPDF, downloadPDF, downloadCSV } from "../utils/download"
 
 const ReceiptTable = ({ receipts }) => {
   const [searchTerm, setSearchTerm] = useState("")
@@ -55,13 +54,13 @@ const ReceiptTable = ({ receipts }) => {
       date: receipt.paidOn,
     }
 
-    const doc = generateReceiptPDF(invoice, paymentDetails)
+    // const doc = generateReceiptPDF(invoice, paymentDetails)
 
     // Add receipt-specific information
     doc.setFontSize(12)
     doc.text(`Receipt ID: ${receipt.id}`, 20, 110)
 
-    downloadPDF(doc, `receipt-${receipt.id}.pdf`)
+    // downloadPDF(doc, `receipt-${receipt.id}.pdf`)
   }
 
   const handleExportCSV = () => {
@@ -74,7 +73,7 @@ const ReceiptTable = ({ receipts }) => {
       Description: receipt.description || "N/A",
     }))
 
-    downloadCSV(exportData, `receipts-${new Date().toISOString().split("T")[0]}.csv`)
+    // downloadCSV(exportData, `receipts-${new Date().toISOString().split("T")[0]}.csv`)
   }
 
   if (receipts.length === 0) {

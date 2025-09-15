@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import { Button } from "../../../components/ui/button"
 import { Badge } from "../../../components/ui/badge"
 import { FileText, FolderOpen, CreditCard, TrendingUp, Clock, Plus, ArrowRight, Activity } from "lucide-react"
-import { getStoredData, seedReturns, seedInvoices, seedActivityLogs } from "@/src/data/seed"
+// import { getStoredData, seedReturns, seedInvoices, seedActivityLogs } from "@/src/data/seed"
 import { formatCurrency, formatDate } from "@/src/utils/validators"
 import { BASE_URL } from "@/src/components/BaseUrl"
 
@@ -23,10 +23,8 @@ const Dashboard = () => {
     // Get user data from localStorage (client-side only)
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem("userProfile") || "{}")
-      console.log("User profile from localStorage:", user)
       if (user && user.uid) {
         setUserId(user.uid)
-        console.log("Fetching data for user ID:", user.uid)
       }
     }
   }, [])
@@ -35,12 +33,48 @@ const Dashboard = () => {
     if (userId) {
       // Load returns and invoices from localStorage or seed data
       fetchReturns()
-      setInvoices(getStoredData("invoices", seedInvoices))
+      loadInvoices()
       
       // Fetch activity logs from API
       fetchActivityLogs()
     }
   }, [userId])
+
+   const loadInvoices = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`${BASE_URL}/api/getInvoices/${userId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch invoices')
+        }
+        const apiInvoices = await response.json()
+        console.log("API Invoices:", apiInvoices)
+        
+        const transformedInvoices = apiInvoices.map(invoice => ({
+          id: invoice.id,
+          customerId: invoice.customer_id,
+          customerName: invoice.customer_name,
+          returnName: invoice.tax_name,
+          returnType: "Tax Return",
+          invoiceAmount: Number(invoice.invoice_amount),
+          status: invoice.status,
+          createdAt: invoice.created_at,
+          dueDate: invoice.due_date,
+          createdByType: invoice.createdby_type
+        }))
+
+        console.log("Transformed Invoices:", transformedInvoices)
+        
+        setInvoices(transformedInvoices)
+      } catch (error) {
+        console.error('Error loading invoices:', error)
+        alert("Error loading invoices. Please try again.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    // console.log("Invoices:", invoices)
+    
 
   const fetchReturns = async () => {
     try {
@@ -62,7 +96,7 @@ const Dashboard = () => {
       console.error("Failed to fetch returns:", err)
       setError(err.message)
       // Fallback to seed data if API fails
-      setReturns(getStoredData("returns", seedReturns))
+      setReturns(("returns"))
     } finally {
       setLoading(false)
     }
@@ -87,7 +121,7 @@ const Dashboard = () => {
       console.error("Failed to fetch activity logs:", err)
       setError(err.message)
       // Fallback to seed data if API fails
-      setActivityLogs(getStoredData("activityLogs", seedActivityLogs))
+      setActivityLogs(("activityLogs"))
     } finally {
       setLoading(false)
     }
@@ -98,10 +132,11 @@ const Dashboard = () => {
     pendingReturns: returns.filter((r) => r.return_status !== "completed" && r.return_status !== "document verified").length,
     completedReturns: returns.filter((r) => r.return_status === "completed" || r.return_status === "document verified").length,
     totalInvoices: invoices.length,
-    unpaidInvoices: invoices.filter((i) => i.status === "Unpaid").length,
-    totalAmount: invoices.reduce((sum, invoice) => sum + invoice.amount, 0),
-    unpaidAmount: invoices.filter((i) => i.status === "Unpaid").reduce((sum, invoice) => sum + invoice.amount, 0),
+    unpaidInvoices: invoices.filter((i) => i.status === "pending").length,
+    totalAmount: invoices.reduce((sum, invoice) => sum + invoice.invoiceAmount, 0),
+    unpaidAmount: invoices.filter((i) => i.status === "pending").reduce((sum, invoice) => sum + invoice.invoiceAmount, 0),
   }
+  // console.log("Dashboard stats:", invoices, stats)
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -132,11 +167,16 @@ const Dashboard = () => {
   const recentActivity = activityLogs.slice(-5).reverse()
 
   return (
-    <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+    loading ? (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    ) : (
+      <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         className="space-y-6"
       >
         {/* Welcome Header */}
@@ -336,7 +376,7 @@ const Dashboard = () => {
             <CardDescription>Common tasks to get you started</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <Button
                 variant="outline"
                 className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
@@ -378,6 +418,7 @@ const Dashboard = () => {
       </motion.div>
     </main>
   )
+)
 }
 
 export default Dashboard

@@ -17,7 +17,6 @@ import {
 import ConfirmDialog from "./ConfirmDialog"
 import { Search, Filter, Download, MoreVertical, CreditCard, Trash2, FileText } from "lucide-react"
 import { formatCurrency, formatDate } from "../utils/validators"
-import { downloadCSV, generateReceiptPDF, downloadPDF } from "../utils/download"
 
 const InvoiceTable = ({ invoices, onPay, onUpdate, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState("")
@@ -75,14 +74,14 @@ const InvoiceTable = ({ invoices, onPay, onUpdate, onDelete }) => {
       "Paid Date": invoice.paidDate ? formatDate(invoice.paidDate) : "N/A",
     }))
 
-    downloadCSV(exportData, `invoices-${new Date().toISOString().split("T")[0]}.csv`)
+    // downloadCSV(exportData, `invoices-${new Date().toISOString().split("T")[0]}.csv`)
   }
 
   const handleExportPDF = () => {
-    const doc = generateReceiptPDF(
-      { id: "INVOICE_REPORT", description: "Invoice Report", amount: 0 },
-      { method: "Report Generation" },
-    )
+    // const doc = generateReceiptPDF(
+    //   { id: "INVOICE_REPORT", description: "Invoice Report", amount: 0 },
+    //   { method: "Report Generation" },
+    // )
 
     // Add invoice data to PDF
     let yPosition = 140
@@ -104,7 +103,7 @@ const InvoiceTable = ({ invoices, onPay, onUpdate, onDelete }) => {
       yPosition += 15
     })
 
-    downloadPDF(doc, `invoice-report-${new Date().toISOString().split("T")[0]}.pdf`)
+    // downloadPDF(doc, `invoice-report-${new Date().toISOString().split("T")[0]}.pdf`)
   }
 
   const handleDelete = (invoice) => {

@@ -21,6 +21,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    countryCode: "+1",
     mobile: "",
     password: "",
     confirmPassword: "",
@@ -35,7 +36,8 @@ const Register = () => {
     mobile: "",
     password: "",
     confirmPassword: "",
-    name: ""
+    name: "",
+    countryCode: ""
   })
 
   // const { login } = useAuth()
@@ -62,6 +64,18 @@ const Register = () => {
     }
   }
 
+  const handleCountryCodeChange = (e) => {
+    const value = e.target.value;
+    // Allow only numbers and + at the beginning
+    if (/^\+?[0-9]*$/.test(value)) {
+      setFormData({ ...formData, countryCode: value });
+      // Clear error when user starts typing
+      if (fieldErrors.countryCode) {
+        setFieldErrors({ ...fieldErrors, countryCode: '' });
+      }
+    }
+  };
+
   const validateForm = () => {
     let isValid = true
     const newFieldErrors = {
@@ -69,12 +83,19 @@ const Register = () => {
       mobile: "",
       password: "",
       confirmPassword: "",
-      name: ""
+      name: "",
+      countryCode: ""
     }
 
     // Name validation
     if (!formData.name.trim()) {
       newFieldErrors.name = "Please enter your full name"
+      isValid = false
+    }
+
+    // Country code validation
+    if (!formData.countryCode.trim() || !formData.countryCode.startsWith('+')) {
+      newFieldErrors.countryCode = 'Please enter a valid country code (e.g., +1)'
       isValid = false
     }
 
@@ -145,7 +166,7 @@ const Register = () => {
       const payload = {
         name: formData.name,
         email: formData.email,
-        mobile: formData.mobile.replace(/\D/g, ''), // Remove any formatting from mobile number
+        mobile: formData.countryCode + formData.mobile.replace(/\D/g, ''), // Combine country code with mobile number
         password: formData.password,
         role: formData.role
       }
@@ -281,48 +302,44 @@ const Register = () => {
             </div>
 
             <div>
-              <Label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                Account Type
-              </Label>
-              <Select 
-                value={formData.role} 
-                onValueChange={(value) => setFormData({...formData, role: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
               <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
                 Mobile Number
               </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                <Input
-                  id="mobile"
-                  name="mobile"
-                  type="tel"
-                  placeholder="(123) 456-7890"
-                  value={formData.mobile}
-                  onChange={handleMobileChange}
-                  className={`pl-10 ${fieldErrors.mobile ? "border-red-500" : ""}`}
-                  required
-                />
+              <div className="flex">
+                <div className="relative mr-2 flex-shrink-0">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  <Input
+                    id="countryCode"
+                    name="countryCode"
+                    type="text"
+                    placeholder="+1"
+                    value={formData.countryCode}
+                    onChange={handleCountryCodeChange}
+                    className={`pl-10 w-20 ${fieldErrors.countryCode ? "border-red-500" : ""}`}
+                    required
+                  />
+                </div>
+                <div className="relative flex-grow">
+                  <Input
+                    id="mobile"
+                    name="mobile"
+                    type="tel"
+                    placeholder="(123) 456-7890"
+                    value={formData.mobile}
+                    onChange={handleMobileChange}
+                    className={`${fieldErrors.mobile ? "border-red-500" : ""}`}
+                    required
+                  />
+                </div>
               </div>
-              {fieldErrors.mobile && (
-                <p className="mt-1 text-sm text-red-600">{fieldErrors.mobile}</p>
+              {(fieldErrors.mobile || fieldErrors.countryCode) && (
+                <p className="mt-1 text-sm text-red-600">
+                  {fieldErrors.mobile || fieldErrors.countryCode}
+                </p>
               )}
             </div>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-             
-
               <TabsContent value="email" className="space-y-4">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
@@ -416,7 +433,6 @@ const Register = () => {
                   </Button>
                 </form>
               </TabsContent>
-
             </Tabs>
 
             <div className="text-center">
