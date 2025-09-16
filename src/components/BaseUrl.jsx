@@ -1,1 +1,1 @@
-export const BASE_URL="https://api.invertio.us/"
+export const BASE_URL="https://api.invertio.us"
