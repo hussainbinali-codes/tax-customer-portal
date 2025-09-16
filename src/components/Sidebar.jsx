@@ -151,12 +151,13 @@ const Sidebar = ({ isOpen, setIsOpen, currentPath }) => {
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-3"
+                className="flex items-center gap-3 "
+                
               >
-                <div className=" rounded-xl flex items-center justify-center shadow-lg">
+                <div className=" rounded-xl flex items-center justify-center shadow-lg" onClick={() => router.push("/dashboard")}>
                   <img src="/favicon.svg" alt="logo" className="w-8 h-8" />
                 </div>
-                <div>
+                <div onClick={() => router.push("/dashboard")} className="cursor-pointer">
                   <h1 className="font-bold text-lg text-sidebar-foreground">Invertio.us</h1>
                   <p className="text-xs text-sidebar-foreground/80">Invertio Taxation Company</p>
                 </div>

@@ -1,28 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-// import { useAuth } from "../../src/contexts/AuthContext"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Checkbox } from "../../components/ui/checkbox"
-import { Loader2, Mail, Building2, Phone } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import {BASE_URL} from "@/src/components/BaseUrl"
+import { Loader2, Mail, Building2, Phone, X } from "lucide-react"
+import PhoneInput from 'react-phone-number-input'
+import 'react-phone-number-input/style.css'
 
 const Register = () => {
   const [activeTab, setActiveTab] = useState("email")
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    countryCode: "+1",
-    mobile: "",
+    phone: "",
     password: "",
     confirmPassword: "",
     role: "individual"
@@ -33,14 +23,13 @@ const Register = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({
     email: "",
-    mobile: "",
+    phone: "",
     password: "",
     confirmPassword: "",
-    name: "",
-    countryCode: ""
+    name: ""
   })
+  const [termsModalOpen, setTermsModalOpen] = useState(false)
 
-  // const { login } = useAuth()
   const router = useRouter()
 
   const handleInputChange = (e) => {
@@ -64,27 +53,34 @@ const Register = () => {
     }
   }
 
-  const handleCountryCodeChange = (e) => {
-    const value = e.target.value;
-    // Allow only numbers and + at the beginning
-    if (/^\+?[0-9]*$/.test(value)) {
-      setFormData({ ...formData, countryCode: value });
-      // Clear error when user starts typing
-      if (fieldErrors.countryCode) {
-        setFieldErrors({ ...fieldErrors, countryCode: '' });
-      }
+  const handlePhoneChange = (value) => {
+    setFormData({
+      ...formData,
+      phone: value || ""
+    })
+    
+    // Clear phone error when user starts typing
+    if (fieldErrors.phone) {
+      setFieldErrors({
+        ...fieldErrors,
+        phone: ""
+      })
     }
-  };
+    
+    // Clear general error when user starts typing
+    if (error) {
+      setError("")
+    }
+  }
 
   const validateForm = () => {
     let isValid = true
     const newFieldErrors = {
       email: "",
-      mobile: "",
+      phone: "",
       password: "",
       confirmPassword: "",
-      name: "",
-      countryCode: ""
+      name: ""
     }
 
     // Name validation
@@ -93,24 +89,10 @@ const Register = () => {
       isValid = false
     }
 
-    // Country code validation
-    if (!formData.countryCode.trim() || !formData.countryCode.startsWith('+')) {
-      newFieldErrors.countryCode = 'Please enter a valid country code (e.g., +1)'
+    // Phone validation
+    if (!formData.phone) {
+      newFieldErrors.phone = "Please enter your phone number"
       isValid = false
-    }
-
-    // Mobile validation
-    if (!formData.mobile.trim()) {
-      newFieldErrors.mobile = "Please enter your mobile number"
-      isValid = false
-    } else {
-      // Basic mobile number validation
-      const mobileRegex = /^[0-9]{10}$/
-      const digitsOnly = formData.mobile.replace(/\D/g, '')
-      if (!mobileRegex.test(digitsOnly)) {
-        newFieldErrors.mobile = "Please enter a valid 10-digit mobile number"
-        isValid = false
-      }
     }
 
     // Password validation
@@ -166,7 +148,7 @@ const Register = () => {
       const payload = {
         name: formData.name,
         email: formData.email,
-        mobile: formData.countryCode + formData.mobile.replace(/\D/g, ''), // Combine country code with mobile number
+        phone: formData.phone,
         password: formData.password,
         role: formData.role
       }
@@ -201,10 +183,10 @@ const Register = () => {
             ...fieldErrors,
             email: data.message
           })
-        } else if (data.message && data.message.includes("mobile")) {
+        } else if (data.message && data.message.includes("phone")) {
           setFieldErrors({
             ...fieldErrors,
-            mobile: data.message
+            phone: data.message
           })
         } else {
           setError(data.message || "Registration failed. Please try again.")
@@ -217,36 +199,6 @@ const Register = () => {
     }
   }
 
-  // Format mobile number as user types
-  const handleMobileChange = (e) => {
-    const input = e.target.value.replace(/\D/g, '')
-    let formattedInput = input
-    
-    if (input.length > 3 && input.length <= 6) {
-      formattedInput = `(${input.slice(0, 3)}) ${input.slice(3)}`
-    } else if (input.length > 6) {
-      formattedInput = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6, 10)}`
-    }
-    
-    setFormData({
-      ...formData,
-      mobile: formattedInput
-    })
-    
-    // Clear mobile error when user starts typing
-    if (fieldErrors.mobile) {
-      setFieldErrors({
-        ...fieldErrors,
-        mobile: ""
-      })
-    }
-    
-    // Clear general error when user starts typing
-    if (error) {
-      setError("")
-    }
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center p-4">
       <motion.div
@@ -255,45 +207,45 @@ const Register = () => {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full max-w-md"
       >
-        <Card className="shadow-2xl border-0 backdrop-blur-sm bg-white/95">
-          <CardHeader className="text-center pb-6">
+        <div className="shadow-2xl border-0 backdrop-blur-sm bg-white/95 rounded-lg border border-gray-200">
+          <div className="text-center pb-6 pt-8 px-6">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg"
+              className="mx-auto w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
             >
               <img src="/favicon.svg" alt="logo" />
             </motion.div>
-            <CardTitle className="text-2xl font-bold text-gray-900">Create Account</CardTitle>
-            <CardDescription className="text-gray-600">Join our business management platform</CardDescription>
-          </CardHeader>
+            <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
+            <p className="text-gray-600 mt-1">Join our business management platform</p>
+          </div>
 
-          <CardContent className="space-y-6">
+          <div className="space-y-6 px-6 pb-6">
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+                {error}
+              </div>
             )}
 
             {success && (
-              <Alert className="border-green-200 bg-green-50">
-                <AlertDescription className="text-green-800">{success}</AlertDescription>
-              </Alert>
+              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-md">
+                {success}
+              </div>
             )}
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                 Full Name
               </label>
-              <Input
+              <input
                 id="name"
                 name="name"
                 type="text"
                 placeholder="Enter Your Full Name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className={fieldErrors.name ? "border-red-500" : ""}
+                className={`w-full px-3 py-2 border rounded-md ${fieldErrors.name ? "border-red-500" : "border-gray-300"}`}
                 required
               />
               {fieldErrors.name && (
@@ -302,58 +254,39 @@ const Register = () => {
             </div>
 
             <div>
-              <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                 Mobile Number
               </label>
-              <div className="flex">
-                <div className="relative mr-2 flex-shrink-0">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
-                  <Input
-                    id="countryCode"
-                    name="countryCode"
-                    type="text"
-                    placeholder="+1"
-                    value={formData.countryCode}
-                    onChange={handleCountryCodeChange}
-                    className={`pl-10 w-20 ${fieldErrors.countryCode ? "border-red-500" : ""}`}
-                    required
-                  />
-                </div>
-                <div className="relative flex-grow">
-                  <Input
-                    id="mobile"
-                    name="mobile"
-                    type="tel"
-                    placeholder="(123) 456-7890"
-                    value={formData.mobile}
-                    onChange={handleMobileChange}
-                    className={`${fieldErrors.mobile ? "border-red-500" : ""}`}
-                    required
-                  />
-                </div>
+              <div className={`react-phone-input-container ${fieldErrors.phone ? 'error' : ''}`}>
+                <PhoneInput
+                  international
+                  defaultCountry="AE"
+                  placeholder="Enter phone number"
+                  value={formData.phone}
+                  onChange={handlePhoneChange}
+                  className={`w-full px-3 py-2 border rounded-md ${fieldErrors.phone ? "border-red-500" : "border-gray-300"}`}
+                />
               </div>
-              {(fieldErrors.mobile || fieldErrors.countryCode) && (
-                <p className="mt-1 text-sm text-red-600">
-                  {fieldErrors.mobile || fieldErrors.countryCode}
-                </p>
+              {fieldErrors.phone && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>
               )}
             </div>
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsContent value="email" className="space-y-4">
+            <div className="w-full">
+              <div className="space-y-4">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email Address
                     </label>
-                    <Input
+                    <input
                       id="email"
                       name="email"
                       type="email"
                       placeholder="abc234@gmail.com"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={fieldErrors.email ? "border-red-500" : ""}
+                      className={`w-full px-3 py-2 border rounded-md ${fieldErrors.email ? "border-red-500" : "border-gray-300"}`}
                       required
                     />
                     {fieldErrors.email && (
@@ -365,14 +298,14 @@ const Register = () => {
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                       Password
                     </label>
-                    <Input
+                    <input
                       id="password"
                       name="password"
                       type="password"
                       placeholder="Enter your password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      className={fieldErrors.password ? "border-red-500" : ""}
+                      className={`w-full px-3 py-2 border rounded-md ${fieldErrors.password ? "border-red-500" : "border-gray-300"}`}
                       required
                     />
                     {fieldErrors.password && (
@@ -384,14 +317,14 @@ const Register = () => {
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                       Confirm Password
                     </label>
-                    <Input
+                    <input
                       id="confirmPassword"
                       name="confirmPassword"
                       type="password"
                       placeholder="Confirm your password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className={fieldErrors.confirmPassword ? "border-red-500" : ""}
+                      className={`w-full px-3 py-2 border rounded-md ${fieldErrors.confirmPassword ? "border-red-500" : "border-gray-300"}`}
                       required
                     />
                     {fieldErrors.confirmPassword && (
@@ -400,26 +333,29 @@ const Register = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="terms-email" 
-                      checked={agreedToTerms} 
-                      onCheckedChange={(checked) => setAgreedToTerms(checked === true)}
+                    <input
+                      id="terms-email"
+                      type="checkbox"
+                      checked={agreedToTerms}
+                      onChange={(e) => setAgreedToTerms(e.target.checked)}
+                      className="h-4 w-4 text-blue-600 rounded"
                       required
                     />
                     <label htmlFor="terms-email" className="text-sm text-gray-700">
                       I agree to the{" "}
                       <button 
-                        onClick={() => router.push("/terms")} 
-                        className="text-primary hover:underline cursor-pointer"
+                        type="button"
+                        onClick={() => setTermsModalOpen(true)} 
+                        className="text-blue-600 hover:underline cursor-pointer"
                       >
                         Terms and Conditions
                       </button>
                     </label>
                   </div>
 
-                  <Button 
+                  <button 
                     type="submit" 
-                    className="w-full" 
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center" 
                     disabled={loading || !agreedToTerms}
                   >
                     {loading ? (
@@ -430,25 +366,132 @@ const Register = () => {
                     ) : (
                       "Create Account"
                     )}
-                  </Button>
+                  </button>
                 </form>
-              </TabsContent>
-            </Tabs>
+              </div>
+            </div>
 
             <div className="text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{" "}
                 <button 
                   onClick={() => router.push("/login")} 
-                  className="text-primary hover:underline font-medium transition-colors cursor-pointer"
+                  className="text-blue-600 hover:underline font-medium transition-colors cursor-pointer"
                 >
                   Sign in
                 </button>
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </motion.div>
+
+      {/* Terms and Conditions Modal */}
+      {termsModalOpen && (
+        <div className="fixed inset-0 bg-transparent bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+              <h3 className="text-xl font-semibold text-gray-800">Terms and Conditions</h3>
+              <X 
+                className="h-6 w-6 cursor-pointer text-gray-500 hover:text-gray-700 transition-colors" 
+                onClick={() => setTermsModalOpen(false)}
+              />
+            </div>
+            
+            <div className="overflow-auto p-6 flex-grow">
+              <div className="space-y-6 text-gray-700">
+                <p className="font-medium text-gray-500 text-sm">Last updated: {new Date().toLocaleDateString()}</p>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">1. Acceptance of Terms</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    By accessing or using our business management platform, you agree to be bound by these Terms and Conditions. 
+                    If you do not agree to all of these terms, you may not access or use our services.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">2. Account Registration</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    You must provide accurate, current and complete information during the registration process and keep your account information updated.
+                    You are responsible for safeguarding your password and for all activities that occur under your account.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">3. User Responsibilities</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    You agree to use our services only for lawful purposes and in accordance with these Terms. You must not use our services:
+                  </p>
+                  <ul className="list-disc pl-5 mt-2 text-gray-600 space-y-1">
+                    <li>In any way that violates any applicable law or regulation</li>
+                    <li>To transmit, or procure the sending of, any advertising or promotional material</li>
+                    <li>To impersonate or attempt to impersonate the company, an employee, another user, or any other person or entity</li>
+                  </ul>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">4. Intellectual Property</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    The platform and its original content, features, and functionality are owned by us and are protected by international copyright, trademark, and other intellectual property laws.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">5. Privacy Policy</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    Your registration data and other personally identifiable information are subject to our Privacy Policy, which explains how we collect, use, and disclose information that pertains to your privacy.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">6. Termination</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">7. Limitation of Liability</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    In no event shall we, nor our directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages resulting from your access to or use of, or inability to access or use, the services.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">8. Governing Law</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    These Terms shall be governed and construed in accordance with the laws, without regard to its conflict of law provisions.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">9. Changes to Terms</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    We reserve the right, at our sole discretion, to modify or replace these Terms at any time. By continuing to access or use our services after any revisions become effective, you agree to be bound by the revised terms.
+                  </p>
+                </section>
+                
+                <section>
+                  <h3 className="font-semibold text-gray-800 text-lg mb-2">10. Contact Information</h3>
+                  <p className="text-gray-600 leading-relaxed">
+                    If you have any questions about these Terms, please contact us at support@company.com.
+                  </p>
+                </section>
+              </div>
+            </div>
+            
+            <div className="flex justify-end p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <button 
+                onClick={() => setTermsModalOpen(false)}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-md hover:shadow-lg"
+              >
+                I Understand
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

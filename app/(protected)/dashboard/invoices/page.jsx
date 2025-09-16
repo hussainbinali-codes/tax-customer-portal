@@ -18,9 +18,12 @@ export default function Invoices() {
   const [viewInvoice, setViewInvoice] = useState(null) // For viewing invoice
   const [isDownloading, setIsDownloading] = useState(false) // For download state
 
+      const userToken = localStorage.getItem('token')
+  
   useEffect(() => {
     try {
       const userString = localStorage.getItem('userProfile')
+      
       const user = userString ? JSON.parse(userString) : null
       if (user) {
         const loggedInUser = {
@@ -54,7 +57,12 @@ export default function Invoices() {
   const loadInvoices = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${BASE_URL}/api/getInvoices/${currentUser?.id}`)
+      const response = await fetch(`${BASE_URL}/api/getInvoices/${currentUser?.id}` ,{
+
+        headers: {
+          "Authorization": `Bearer ${userToken}`
+        }
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch invoices')
       }
@@ -198,7 +206,8 @@ export default function Invoices() {
       const response = await fetch(`${BASE_URL}/api/create-order`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ 
           amount: invoice.invoiceAmount, // Amount in USD

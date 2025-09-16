@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Loader2, Mail, Phone, Building2 } from "lucide-react"
+import { Loader2, Mail, Phone, Building2, Eye, EyeOff } from "lucide-react"
 import {BASE_URL} from "@/src/components/BaseUrl"
 import Image from "next/image"
 
@@ -30,6 +30,7 @@ const Login = () => {
   const [step, setStep] = useState("input") // 'input' or 'verify'
   const [resendTimer, setResendTimer] = useState(0)
   const [termsAgreed, setTermsAgreed] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const { login } = useAuth()
   const router = useRouter()
@@ -184,6 +185,11 @@ const Login = () => {
 
       const data = await response.json()
 
+      const token = data.token
+
+      localStorage.setItem("token", token)
+      // console.log("Received token:", token)
+
       if (response.ok) {
         // Prepare user data for auth context
         const userData = {
@@ -223,6 +229,10 @@ const Login = () => {
   const handleSignUpRedirect = () => {
     
     router.push("/register")
+  }
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
   }
 
   return (
@@ -316,15 +326,28 @@ const Login = () => {
                       <label htmlFor="email-password" className="block text-sm font-medium text-gray-700 mb-2">
                         Password
                       </label>
-                      <Input
-                        id="email-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="email-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? (
@@ -413,15 +436,28 @@ const Login = () => {
                       <label htmlFor="mobile-password" className="block text-sm font-medium text-gray-700 mb-2">
                         Password
                       </label>
-                      <Input
-                        id="mobile-password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="mobile-password"
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pr-10"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={togglePasswordVisibility}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={loading}>
                       {loading ? (
@@ -489,17 +525,6 @@ const Login = () => {
                 )}
               </TabsContent>
             </Tabs>
-
-            {/* <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="terms" 
-                checked={termsAgreed}
-                onCheckedChange={(checked) => setTermsAgreed(checked === true)}
-              />
-              <Label htmlFor="terms" className="text-sm text-gray-600">
-                I agree to the <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>
-              </Label>
-            </div> */}
 
             <div className="text-center">
               <p className="text-sm text-gray-600">

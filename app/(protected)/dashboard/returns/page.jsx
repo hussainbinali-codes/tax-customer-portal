@@ -126,6 +126,7 @@ const Returns = () => {
         {
           headers : {
             "ngrok-skip-browser-warning": "true"
+            ,"Authorization": `Bearer ${localStorage.getItem('token')}`
           }
         }
       )
@@ -214,7 +215,10 @@ const Returns = () => {
           setReturnDetails(existingReturnData)
         } else {
           // Fallback to API call if data not found (shouldn't happen normally)
-          const detailsResponse = await fetch(`${BASE_URL}/api/tax-returns/${id}`)
+          const detailsResponse = await fetch(`${BASE_URL}/api/tax-returns/${id}`,{
+            headers : {
+              "Authorization": `Bearer ${localStorage.getItem('token')}`
+          }})
           if (detailsResponse.ok) {
             const details = await detailsResponse.json()
             setReturnDetails(details)
@@ -223,8 +227,16 @@ const Returns = () => {
 
         // Still fetch documents and timeline as these are separate endpoints
         const [documentsResponse, timelineResponse] = await Promise.all([
-          fetch(`${BASE_URL}/api/documents/${id}`).catch(() => ({ ok: false })),
-          fetch(`${BASE_URL}/api/comments/${id}`).catch(() => ({ ok: false })),
+          fetch(`${BASE_URL}/api/documents/${id}` ,{
+             headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+          } ).catch(() => ({ ok: false })),
+          fetch(`${BASE_URL}/api/comments/${id}`, {
+             headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+          }).catch(() => ({ ok: false })),
         ])
 
         // Handle documents
@@ -267,7 +279,11 @@ const Returns = () => {
       const fileName = doc.doc_name || cleanPath.split("/").pop() || "document"
       const downloadUrl = `${BASE_URL}/api/download?documentLink=${encodeURIComponent(doc.document_link)}`
 
-      const response = await fetch(downloadUrl)
+      const response = await fetch(downloadUrl ,{
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      })
       if (!response.ok) throw new Error(`Download failed: ${response.status}`)
 
       const blob = await response.blob()
@@ -337,6 +353,9 @@ const Returns = () => {
       const response = await fetch(`${BASE_URL}/api/upload-documents`, {
         method: "POST",
         body: formData,
+         headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
       })
 
       if (!response.ok) throw new Error(`Upload failed: ${response.status}`)
@@ -361,6 +380,9 @@ const Returns = () => {
       const response = await fetch(`${BASE_URL}/api/upload-documents`, {
         method: "POST",
         body: formData,
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
       })
 
       if (!response.ok) throw new Error(`Comment post failed: ${response.status}`)
@@ -506,12 +528,12 @@ const Returns = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="flex-1 flex flex-col overflow-auto">
-        <main className="flex-1 overflow-hidden  p-4 lg:p-6">
+    <div className="flex h-screen bg-gray-50 ">
+      <div className="flex-1 flex flex-col ">
+        <main className="flex-1 ">
           {selectedReturnId ? (
             // Customer Detail View
-            <div className="mx-auto max-w-6xl space-y-6">
+            <div className="mx-auto max-w-6xl space-y-6  ">
               <header className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button
@@ -536,7 +558,7 @@ const Returns = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               ) : (
-                <section className="space-y-3">
+                <section className="space-y-3 ">
                   {detailedReturns.length === 0 ? (
                     <div className="text-center py-12">
                       <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -545,7 +567,7 @@ const Returns = () => {
                     </div>
                   ) : (
                     detailedReturns.map((r) => (
-                      <div key={r.id} className="rounded-md border border-gray-200 bg-white">
+                      <div key={r.id} className="rounded-md border border-gray-200 bg-white ">
                         <div className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="text-gray-900">{r.name}</div>
@@ -556,7 +578,7 @@ const Returns = () => {
                           </div>
                         </div>
 
-                        <div className="border-t">
+                        <div className="border-t ">
                           <div className="grid items-start gap-4 p-4 md:grid-cols-4 md:p-6">
                             <div className="md:col-span-3 rounded-md border border-gray-200 bg-white">
                               <div className="p-4 md:p-6">
@@ -1027,9 +1049,9 @@ const Returns = () => {
               </div>
 
               {/* Returns Table */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 ">
   <div className="overflow-x-auto">
-    <div className="overflow-y-auto h-52"> {/* Added max height for vertical scrolling */}
+    <div className="overflow-y-hidden"> {/* Added max height for vertical scrolling */}
       <table className="min-w-full divide-y  divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -1093,7 +1115,7 @@ const Returns = () => {
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button
+                  {/* <button
                     className="text-gray-600 hover:text-gray-700 transition-colors"
                     title="Edit Return"
                     onClick={() => {
@@ -1102,7 +1124,7 @@ const Returns = () => {
                     }}
                   >
                     <Edit className="w-4 h-4" />
-                  </button>
+                  </button> */}
                 </div>
               </td>
             </tr>

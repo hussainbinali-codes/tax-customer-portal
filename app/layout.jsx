@@ -30,7 +30,7 @@ import DashboardLayout from "@/src/components/DashboardLayout"
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ overflow: "hidden" }}>
       <head>
         <title>Invertio.us – Invertio Taxation Company</title>
         <meta
@@ -41,7 +41,7 @@ export default function RootLayout({ children }) {
         <meta name="author" content="Invertio Taxation Company" />
       </head>
       <link rel="icon" type="image/x-icon" href="/favicon.svg" />
-      <body>
+      <body width="device-width" initial-scale="1">
         <AuthProvider>
         {/* <DashboardLayout> */}
 

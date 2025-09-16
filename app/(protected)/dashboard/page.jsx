@@ -43,7 +43,12 @@ const Dashboard = () => {
    const loadInvoices = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${BASE_URL}/api/getInvoices/${userId}`)
+        const response = await fetch(`${BASE_URL}/api/getInvoices/${userId}`,{
+
+           headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+        })
         if (!response.ok) {
           throw new Error('Failed to fetch invoices')
         }
@@ -76,12 +81,14 @@ const Dashboard = () => {
     // console.log("Invoices:", invoices)
     
 
+    const userToken = localStorage.getItem('token')
   const fetchReturns = async () => {
     try {
       setLoading(true)
       const response = await fetch(`${BASE_URL}/api/getClientDashboard/${userId}`, {
         headers: {
-          "ngrok-skip-browser-warning": "true"
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
       })
       
@@ -102,12 +109,15 @@ const Dashboard = () => {
     }
   }
 
+  
+
   const fetchActivityLogs = async () => {
     try {
       setLoading(true)
       const response = await fetch(`${BASE_URL}/api/getActivites/${userId}`, {
         headers: {
-          "ngrok-skip-browser-warning": "true"
+          "ngrok-skip-browser-warning": "true",
+          "Authorization": `Bearer ${userToken}`,
         }
       })
       
@@ -188,12 +198,12 @@ const Dashboard = () => {
             </p>
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-            <Button asChild className="w-fit shadow-lg hover:shadow-xl transition-all duration-200">
+            {/* <Button asChild className="w-fit shadow-lg hover:shadow-xl transition-all duration-200">
               <Link href="/dashboard/returns">
                 <Plus className="w-4 h-4 mr-2" />
                 New Tax Return
               </Link>
-            </Button>
+            </Button> */}
           </motion.div>
         </div>
         
@@ -394,10 +404,10 @@ const Dashboard = () => {
                 className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
                 asChild
               >
-                <Link href="/dashboard/payments">
-                  <CreditCard className="w-6 h-6" />
+                <Link href="/dashboard/invoices">
+                   <Activity className="w-6 h-6" />
                   <span className="font-medium">View Invoices</span>
-                  <span className="text-xs text-gray-500">Check payment status</span>
+                  <span className="text-xs text-gray-500">Check invoice status</span>
                 </Link>
               </Button>
 
@@ -406,10 +416,11 @@ const Dashboard = () => {
                 className="h-auto p-4 flex flex-col items-center gap-2 bg-transparent"
                 asChild
               >
-                <Link href="/dashboard/activity-logs">
-                  <Activity className="w-6 h-6" />
-                  <span className="font-medium">Activity History</span>
-                  <span className="text-xs text-gray-500">Track all changes</span>
+                <Link href="/dashboard/payments">
+                <CreditCard className="w-6 h-6" />
+                 
+                  <span className="font-medium">Payments</span>
+                  <span className="text-xs text-gray-500">Track all payments</span>
                 </Link>
               </Button>
             </div>
