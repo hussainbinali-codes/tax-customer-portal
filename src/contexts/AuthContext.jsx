@@ -158,7 +158,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setCurrentUser(null)
       if (typeof window !== "undefined") {
-        localStorage.removeItem("userProfile") // ✅ remove only our key
+        // localStorage.removeItem("userProfile") // ✅ remove only our key
+        localStorage.clear()
       }
     } catch (error) {
       console.error("Logout error:", error)
