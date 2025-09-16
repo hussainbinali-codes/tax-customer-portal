@@ -30,6 +30,7 @@ import {
   TrendingDown,
   Filter,
   ChevronDown,
+  MoreVertical,
 } from "lucide-react"
 import ReturnForm from "@/src/components/ReturnForm"
 import {BASE_URL} from "@/src/components/BaseUrl"
@@ -529,11 +530,11 @@ const Returns = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 ">
-      <div className="flex-1 flex flex-col ">
-        <main className="flex-1 ">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
           {selectedReturnId ? (
             // Customer Detail View
-            <div className="mx-auto max-w-6xl space-y-6  ">
+            <div className="mx-auto max-w-6xl space-y-6">
               <header className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <button
@@ -558,7 +559,7 @@ const Returns = () => {
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                 </div>
               ) : (
-                <section className="space-y-3 ">
+                <section className="space-y-3">
                   {detailedReturns.length === 0 ? (
                     <div className="text-center py-12">
                       <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -567,7 +568,7 @@ const Returns = () => {
                     </div>
                   ) : (
                     detailedReturns.map((r) => (
-                      <div key={r.id} className="rounded-md border border-gray-200 bg-white ">
+                      <div key={r.id} className="rounded-md border border-gray-200 bg-white">
                         <div className="flex items-center justify-between px-4 py-3">
                           <div className="flex items-center gap-3">
                             <div className="text-gray-900">{r.name}</div>
@@ -578,7 +579,7 @@ const Returns = () => {
                           </div>
                         </div>
 
-                        <div className="border-t ">
+                        <div className="border-t">
                           <div className="grid items-start gap-4 p-4 md:grid-cols-4 md:p-6">
                             <div className="md:col-span-3 rounded-md border border-gray-200 bg-white">
                               <div className="p-4 md:p-6">
@@ -837,8 +838,8 @@ const Returns = () => {
                 </Button>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              {/* Stats Cards - Responsive Grid */}
+              <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {/* In Review Card */}
                 <motion.div 
                   whileHover={{ y: -3 }} 
@@ -980,7 +981,7 @@ const Returns = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                     >
                       <Filter className="h-4 w-4" />
-                      Filters
+                      <span className="hidden sm:inline">Filters</span>
                       <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
                     </button>
                     
@@ -1049,103 +1050,95 @@ const Returns = () => {
               </div>
 
               {/* Returns Table */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 ">
-  <div className="overflow-x-auto">
-    <div className="overflow-y-hidden"> {/* Added max height for vertical scrolling */}
-      <table className="min-w-full divide-y  divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap sticky left-0 bg-gray-50 z-10"> {/* Made first column sticky */}
-              Return ID
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-              Name
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-              Documents
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-              Return Type
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-              Status
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-              Last Updated
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap sticky right-0 bg-gray-50 z-10"> {/* Made actions column sticky */}
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {filteredReturns.map((returnItem) => (
-            <tr key={returnItem.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-4 whitespace-nowrap sticky left-0 bg-white z-0"> {/* Made first column sticky */}
-                <div className="text-sm font-medium text-gray-900">#{returnItem.id}</div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <div className="text-sm font-medium text-gray-900">{returnItem.name}</div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <FileText className="w-4 h-4 text-gray-400 mr-2" />
-                  <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          Return ID
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden sm:table-cell">
+                          Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden md:table-cell">
+                          Documents
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          Type
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap hidden lg:table-cell">
+                          Last Updated
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredReturns.map((returnItem) => (
+                        <tr key={returnItem.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">#{returnItem.id}</div>
+                            <div className="text-xs text-gray-500 sm:hidden">{returnItem.name}</div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap hidden sm:table-cell">
+                            <div className="text-sm font-medium text-gray-900">{returnItem.name}</div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+                            <div className="flex items-center">
+                              <FileText className="w-4 h-4 text-gray-400 mr-2" />
+                              <span className="text-sm text-gray-900">{returnItem.documentCount} files</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className="text-sm text-gray-900">{returnItem.type}</span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(returnItem.status)}`}
+                            >
+                              {returnItem.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                            {formatDate(returnItem.lastUpdated)}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                className="text-blue-600 hover:text-blue-700 transition-colors"
+                                title="View Details"
+                                onClick={() => setSelectedReturnId(returnItem.id)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button className="md:hidden text-gray-600 hover:text-gray-700 transition-colors">
+                                <MoreVertical className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <span className="text-sm text-gray-900">{returnItem.type}</span>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <span
-                  className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(returnItem.status)}`}
-                >
-                  {returnItem.status}
-                </span>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
-                {formatDate(returnItem.lastUpdated)}
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 sticky right-0 bg-white z-0"> {/* Made actions column sticky */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    className="text-blue-600 hover:text-blue-700 transition-colors"
-                    title="View Details"
-                    onClick={() => setSelectedReturnId(returnItem.id)}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  {/* <button
-                    className="text-gray-600 hover:text-gray-700 transition-colors"
-                    title="Edit Return"
-                    onClick={() => {
-                      setEditingReturn(returnItem)
-                      setShowForm(true)
-                    }}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button> */}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
 
-  {filteredReturns.length === 0 && (
-    <div className="text-center py-12">
-      <Users className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-medium text-gray-900">No returns found</h3>
-      <p className="mt-1 text-sm text-gray-500">
-        {searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all" 
-          ? "Try adjusting your search or filter terms." 
-          : "Get started by adding a new return."}
-      </p>
-    </div>
-  )}
-</div>
+                {filteredReturns.length === 0 && (
+                  <div className="text-center py-12">
+                    <Users className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">No returns found</h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {searchTerm || statusFilter !== "all" || typeFilter !== "all" || dateFilter !== "all" 
+                        ? "Try adjusting your search or filter terms." 
+                        : "Get started by adding a new return."}
+                    </p>
+                  </div>
+                )}
+              </div>
               </>
             </motion.div>
           )}

@@ -1,3 +1,4 @@
+"use client"
 // import { GeistSans } from "geist/font/sans"
 // import { GeistMono } from "geist/font/mono"
 // import { Analytics } from "@vercel/analytics/next"
@@ -24,11 +25,45 @@
 // }
 
 // app/layout.js
+
 import { AuthProvider } from "@/src/contexts/AuthContext"
 import './globals.css'
 import DashboardLayout from "@/src/components/DashboardLayout"
+import { useEffect } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function RootLayout({ children }) {
+  useEffect(() => {
+    const originalFetch = window.fetch;
+
+    window.fetch = async (...args) => {
+      try {
+        const response = await originalFetch(...args);
+        const clonedResponse = response.clone();
+
+        let data;
+        try {
+          data = await clonedResponse.json();
+        } catch {
+          data = null;
+        }
+
+        if (data?.error?.toLowerCase().includes("token expired")) {
+          handleLogout();
+        }
+
+        return response;
+      } catch (error) {
+        return Promise.reject(error);
+      }
+    };
+
+    function handleLogout() {
+      localStorage.clear();
+      window.location.href = "/login";
+    }
+  }, []);
   return (
     <html lang="en" style={{ overflow: "hidden" }}>
       <head>
